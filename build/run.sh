@@ -23,7 +23,7 @@ cecho() {
 
 # Help message function
 show_help() {
-    echo "Usage: ./run_with_docker.sh [options]"
+    echo "Usage: ./run.sh [options]"
     echo ""
     echo "Options:"
     echo "  --run-tests         Run tests during Maven build."
@@ -114,7 +114,7 @@ step_3_run_containers() {
     cecho "Stopping and removing existing environment (if any)..."
     docker-compose down --remove-orphans -v > /dev/null 2>&1
     cecho "Starting new containers (rebuilding services if necessary)..."
-    docker-compose up --build -d --quiet-pull > /dev/null 2>&1
+    docker-compose up --build --scale server=2 -d
     cecho "Docker Compose environment started."
 }
 

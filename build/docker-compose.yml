@@ -1,29 +1,35 @@
-version: '3'
+version: '3.8'
 
 networks:
   fen_network:
     driver: bridge
 
 services:
+  gateway:
+    image: nginx:1.25.5-alpine
+    container_name: gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - fen_network
+    depends_on:
+      - server
+
   server:
     build:
       context: ../Server
       dockerfile: dockerfile
     image: 'server:latest'
-    container_name: server
-    ports:
-      - "8080:8080"
-      - "5005:5005"
     depends_on:
       - db
       - kafka
-      - kafka-setup
     networks:
       - fen_network
     volumes:
       - /app/data
     environment:
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
   foo:
