@@ -20,7 +20,7 @@ public class LoggingService {
 
     @Scheduled(fixedRate = 10000)
     public void logMessage() {
-        String message = "[Foo] Random log message: " + UUID.randomUUID().toString();
+        String message = "[Foo] Random log message: " + UUID.randomUUID();
 
         try {
             kafkaTemplate.send(KAFKA_TOPIC, message);

@@ -9,7 +9,7 @@ SLEEP_INTERVAL=15
 # --- Define Topics to Create --- 
 # Format: "topic_name;partitions;replication_factor"
 declare -a TOPICS_TO_CREATE=(
-    "FOO_LOGGING_TOPIC;1;1"
+    "FOO_LOGGING_TOPIC;2;1"
     # Add more topics here following the same format
     # "ANOTHER_TOPIC;3;1"
     # "YET_ANOTHER;5;1"
