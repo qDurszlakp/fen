@@ -20,6 +20,6 @@ function cecho() {
 cd "$(dirname "$0")"
 
 cecho "Stopping and removing containers defined in docker-compose.yml..."
-docker-compose down
+docker-compose down --remove-orphans -v
 
 cecho "Containers removed." 

@@ -25,6 +25,7 @@ services:
     depends_on:
       - db
       - kafka
+      - kafka-setup
     networks:
       - fen_network
     volumes:
