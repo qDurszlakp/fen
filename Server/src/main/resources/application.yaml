@@ -22,7 +22,7 @@ files:
 
 data:
   exampleUri: "https://jsonplaceholder.typicode.com/posts"
-  passphraseUrl: "http://foo:8090/"
+  passphraseUrl: "http://foo:8090/secret"
 
 audit:
   patterns: '/**'
