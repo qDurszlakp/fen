@@ -28,6 +28,10 @@ public abstract class AbstractKafkaIntegrationTest {
     static void registerKafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
 
+        attemptTopicsCreation();
+    }
+
+    private static void attemptTopicsCreation() {
         try (AdminClient adminClient = AdminClient.create(
                 Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
         )) {
