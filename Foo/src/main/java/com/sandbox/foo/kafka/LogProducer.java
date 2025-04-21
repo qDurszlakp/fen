@@ -1,4 +1,4 @@
-package com.sandbox.foo.service;
+package com.sandbox.foo.kafka;
 
 import com.sandbox.util.kafka.KafkaTopicInfo;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LoggingService {
+public class LogProducer {
 
     private static final String KAFKA_TOPIC = KafkaTopicInfo.FOO_LOGGING.getTopicName();
 

@@ -1,4 +1,4 @@
-package com.sandbox;
+package com.sandbox.foo.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -34,9 +34,8 @@ public abstract class AbstractKafkaIntegrationTest {
             adminClient.createTopics(Collections.singletonList(
                     new NewTopic("FOO_LOGGING_TOPIC", 1, (short) 1)
             )).all().get(15, TimeUnit.SECONDS);
-            // log.info("Topic FOO_LOGGING_TOPIC potentially created/already exists.");
         } catch (Exception e) {
             log.warn("Exception during topic creation (likely ignored): {}", e.getMessage());
         }
     }
-} 
+}
