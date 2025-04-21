@@ -1,5 +1,6 @@
 package com.sandbox.server.controller;
 
+import com.sandbox.AbstractDbIntegrationTest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

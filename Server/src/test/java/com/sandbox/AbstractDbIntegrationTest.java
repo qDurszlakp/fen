@@ -1,4 +1,4 @@
-package com.sandbox.server.controller;
+package com.sandbox;
 
 import org.junit.ClassRule;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
