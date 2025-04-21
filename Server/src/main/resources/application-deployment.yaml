@@ -26,3 +26,7 @@ data:
 
 audit:
   patterns: '/**'
+
+logging:
+  level:
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
