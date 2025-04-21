@@ -21,6 +21,7 @@ public interface DbMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "insertTime", ignore = true)
     Country countryDtoToCountry(CreateCountryDto createCountryDto);
 
     @Mappings({
