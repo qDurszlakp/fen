@@ -35,7 +35,7 @@ public abstract class AbstractKafkaIntegrationTest {
                     new NewTopic("FOO_LOGGING_TOPIC", 1, (short) 1)
             )).all().get(15, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.warn("Exception during topic creation (likely ignored): {}", e.getMessage());
+            log.warn("Exception during topic creation : {}", e.getMessage());
         }
     }
 }
