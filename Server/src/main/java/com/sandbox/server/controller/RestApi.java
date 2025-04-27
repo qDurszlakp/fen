@@ -57,6 +57,6 @@ public class RestApi {
 
     @GetMapping("/risk")
     public ResponseEntity<Void> risk() {
-        throw new BasicException("Exception here!");
+        throw new BasicException("Exception here!!");
     }
 }
