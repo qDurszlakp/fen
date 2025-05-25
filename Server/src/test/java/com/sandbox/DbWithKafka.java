@@ -1,5 +1,6 @@
 package com.sandbox;
 
+import com.sandbox.util.kafka.KafkaTopicInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -9,11 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.Collections;
 import java.util.Map;
@@ -33,26 +32,23 @@ public abstract class DbWithKafka {
             .withUsername("testUser")
             .withPassword("testPass");
 
-    @Container
-    public static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.0.1"));
-
-
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+
+        registry.add("spring.kafka.bootstrap-servers", KafkaTestContainerSingleton::getBootstrapServers);
 
         attemptTopicsCreation();
     }
 
     private static void attemptTopicsCreation() {
         try (AdminClient adminClient = AdminClient.create(
-                Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
+                Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaTestContainerSingleton.getBootstrapServers())
         )) {
             adminClient.createTopics(Collections.singletonList(
-                    new NewTopic("FOO_LOGGING_TOPIC", 1, (short) 1)
+                    new NewTopic(KafkaTopicInfo.FOO_LOGGING.getTopicName(), 1, (short) 1)
             )).all().get(15, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("Exception during topic creation : {}", e.getMessage());
