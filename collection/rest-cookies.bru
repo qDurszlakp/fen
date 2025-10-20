@@ -1,0 +1,16 @@
+meta {
+  name: /rest/cookies
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/rest/cookies
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

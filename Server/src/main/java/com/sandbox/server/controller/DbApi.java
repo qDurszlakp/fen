@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/app")
+@RequestMapping("/db")
 public class DbApi {
 
     public final DbService dbService;

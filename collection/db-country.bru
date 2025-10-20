@@ -1,0 +1,23 @@
+meta {
+  name: /db/country
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{url}}/db/country
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+   "name": "foo",
+   "code": "f1"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
