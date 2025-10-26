@@ -22,6 +22,7 @@ services:
       context: ../Server
       dockerfile: dockerfile
     image: 'server:latest'
+    restart: on-failure
     depends_on:
       - db
       - kafka
@@ -33,19 +34,42 @@ services:
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
+  server-debug:
+    build:
+      context: ../Server
+      dockerfile: dockerfile
+    image: 'server:latest'
+    container_name: server-debug
+    restart: on-failure
+    ports:
+      - "5005:5005"
+    depends_on:
+      - db
+      - kafka
+      - kafka-setup
+    networks:
+      - fen_network
+    volumes:
+      - /app/data
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
   foo:
     build:
       context: ../Foo
       dockerfile: dockerfile
     image: 'foo:latest'
     container_name: foo
+    ports:
+      - "5006:5005"
     depends_on:
       - kafka
       - kafka-setup
     networks:
       - fen_network
     environment:
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5006,server=y,suspend=n
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
   db:
@@ -61,7 +85,6 @@ services:
 
   zookeeper:
     image: 'bitnami/zookeeper:3.9'
-    container_name: zookeeper
     ports:
       - "2181:2181"
     networks:

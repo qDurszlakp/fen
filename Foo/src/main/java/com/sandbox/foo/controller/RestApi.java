@@ -16,7 +16,7 @@ public class RestApi {
 
     @GetMapping("/secret")
     public ResponseEntity<String> secret() {
-        return ResponseEntity.ok(secretService.prepareSecret().toUpperCase());
+        return ResponseEntity.ok(secretService.prepareSecret());
     }
 
 }
