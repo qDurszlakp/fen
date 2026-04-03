@@ -20,7 +20,7 @@ public class RestApiIntegrationTest extends DbWithKafka {
     @SneakyThrows
     void shouldReturnCookies() {
         // when
-        ResultActions result = mockMvc.perform(get("/app/cookies"));
+        ResultActions result = mockMvc.perform(get("/rest/cookies"));
 
         // then
         result.andExpect(status().isOk())
