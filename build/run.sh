@@ -2,6 +2,8 @@
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
+
+export PODMAN_COMPOSE_WARNING_LOGS=false
 # Treat pipe errors
 set -o pipefail
 
@@ -80,10 +82,10 @@ step_1_build() {
     $mvn_cmd
 
     cecho "Building Docker image for $SERVER_MODULE_DIR..."
-    (cd "$SERVER_MODULE_DIR" && docker build -q -t $SERVER_IMAGE_NAME .)
+    (cd "$SERVER_MODULE_DIR" && podman build -q -f dockerfile -t $SERVER_IMAGE_NAME .)
 
     cecho "Building Docker image for $FOO_MODULE_DIR..."
-    (cd "$FOO_MODULE_DIR" && docker build -q -t $FOO_IMAGE_NAME .)
+    (cd "$FOO_MODULE_DIR" && podman build -q -f dockerfile -t $FOO_IMAGE_NAME .)
 
     cd build # Return to build directory
     cecho "Build step finished."
@@ -93,16 +95,16 @@ step_2_push_images() {
     cecho "[2/4] Tagging and pushing images to registry..."
     if [ "$PUSH_IMAGES" == "true" ]; then
         cecho "Tagging $SERVER_IMAGE_NAME -> $DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest"
-        docker tag $SERVER_IMAGE_NAME "$DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest"
+        podman tag $SERVER_IMAGE_NAME "$DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest"
 
         cecho "Tagging $FOO_IMAGE_NAME -> $DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest"
-        docker tag $FOO_IMAGE_NAME "$DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest"
+        podman tag $FOO_IMAGE_NAME "$DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest"
 
         cecho "Pushing $DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest..."
-        docker push -q "$DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest"
+        podman push -q "$DOCKER_REGISTRY/$SERVER_IMAGE_NAME:latest"
 
         cecho "Pushing $DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest..."
-        docker push -q "$DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest"
+        podman push -q "$DOCKER_REGISTRY/$FOO_IMAGE_NAME:latest"
         cecho "Image push finished."
     else
         cecho "Skipping image push (use --push-images to enable)."
@@ -112,16 +114,18 @@ step_2_push_images() {
 step_3_run_containers() {
     cecho "[3/4] Running Docker Compose environment..."
     cecho "Stopping and removing existing environment (if any)..."
-    docker-compose down --remove-orphans -v > /dev/null 2>&1
+    podman compose down --remove-orphans -v > /dev/null 2>&1
     cecho "Starting new containers (rebuilding services if necessary)..."
-    docker-compose up --build --scale server=2 -d --quiet-pull  > /dev/null 2>&1
+    podman compose up --build --scale server=2 -d > /dev/null 2>&1
     cecho "Docker Compose environment started."
+    cecho "Container status:"
+    podman compose ps
 }
 
 step_4_cleanup() {
     cecho "[4/4] Cleaning up dangling Docker images..."
     # Use xargs --no-run-if-empty to avoid error if no images found
-    docker images -f dangling=true -q | xargs --no-run-if-empty docker rmi
+    podman images -f dangling=true -q | xargs --no-run-if-empty podman rmi
     cecho "Cleanup finished."
 }
 

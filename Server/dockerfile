@@ -1,4 +1,4 @@
-FROM amazoncorretto:21-alpine-jdk
+FROM docker.io/library/amazoncorretto:25-alpine-jdk
 
 # Set the maintainer
 MAINTAINER durszlak

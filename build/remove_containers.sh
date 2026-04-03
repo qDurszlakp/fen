@@ -19,7 +19,7 @@ function cecho() {
 # Change directory to the location of the docker scripts
 cd "$(dirname "$0")"
 
-cecho "Stopping and removing containers defined in docker-compose.yml..."
-docker-compose down --remove-orphans -v
+cecho "Stopping and removing containers defined in podman compose.yml..."
+podman compose down --remove-orphans -v
 
 cecho "Containers removed." 

@@ -22,7 +22,7 @@ kafka_ready=false
 retry_count=0
 while [ $retry_count -lt $MAX_RETRIES ]; do
   # Try listing topics to check readiness
-  if /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --list > /dev/null 2>&1; then
+  if /usr/bin/kafka-topics --bootstrap-server $BOOTSTRAP_SERVER --list > /dev/null 2>&1; then
     echo "Kafka is ready!"
     kafka_ready=true
     break
@@ -42,7 +42,7 @@ fi
 echo "Processing topics..."
 
 # Get the list of existing topics ONCE
-existing_topics=$(/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --list)
+existing_topics=$(/usr/bin/kafka-topics --bootstrap-server $BOOTSTRAP_SERVER --list)
 echo "Existing topics:"
 # Print existing topics
 echo "${existing_topics:-<none>}"
@@ -60,7 +60,7 @@ for topic_def in "${TOPICS_TO_CREATE[@]}"; do
         echo "  Topic '$topic_name' already exists. Skipping creation."
     else
         echo "  Topic '$topic_name' does not exist. Creating with P=$partitions, R=$replication_factor..."
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create \
+        /usr/bin/kafka-topics --create \
           --topic "$topic_name" \
           --bootstrap-server $BOOTSTRAP_SERVER \
           --partitions "$partitions" \

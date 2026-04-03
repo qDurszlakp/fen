@@ -6,12 +6,12 @@ networks:
 
 services:
   gateway:
-    image: nginx:1.25.5-alpine
+    image: docker.io/library/nginx:1.25.5-alpine
     container_name: gateway
     ports:
       - "8080:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro,z
     networks:
       - fen_network
     depends_on:
@@ -26,7 +26,6 @@ services:
     depends_on:
       - db
       - kafka
-      - kafka-setup
     networks:
       - fen_network
     volumes:
@@ -46,7 +45,6 @@ services:
     depends_on:
       - db
       - kafka
-      - kafka-setup
     networks:
       - fen_network
     volumes:
@@ -65,7 +63,6 @@ services:
       - "5006:5005"
     depends_on:
       - kafka
-      - kafka-setup
     networks:
       - fen_network
     environment:
@@ -73,7 +70,7 @@ services:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
   db:
-    image: 'postgres:17.3-alpine'
+    image: 'docker.io/library/postgres:17.3-alpine'
     container_name: database
     networks:
       - fen_network
@@ -84,16 +81,18 @@ services:
       - POSTGRES_PASSWORD=dev
 
   zookeeper:
-    image: 'bitnami/zookeeper:3.9'
+    image: 'docker.io/confluentinc/cp-zookeeper:7.0.1'
+    container_name: zookeeper
     ports:
       - "2181:2181"
     networks:
       - fen_network
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
 
   kafka:
-    image: 'bitnami/kafka:3.7'
+    image: 'docker.io/confluentinc/cp-kafka:7.0.1'
     container_name: kafka
     ports:
       - "9092:9092"
@@ -101,23 +100,24 @@ services:
     networks:
       - fen_network
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:9093
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false
-      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_LISTENERS=INTERNAL://:9092,EXTERNAL://:9093
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     depends_on:
       - zookeeper
 
   kafka-setup:
-    image: 'bitnami/kafka:3.7'
+    image: 'docker.io/confluentinc/cp-kafka:7.0.1'
     container_name: kafka-setup
     depends_on:
       - kafka
     networks:
       - fen_network
     volumes:
-      - ./create-kafka-topics.sh:/scripts/create-kafka-topics.sh
-    command: ["/scripts/create-kafka-topics.sh"]
+      - ./create-kafka-topics.sh:/scripts/create-kafka-topics.sh:z
+    command: ["/bin/bash", "/scripts/create-kafka-topics.sh"]
