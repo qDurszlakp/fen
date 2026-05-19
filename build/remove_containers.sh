@@ -20,6 +20,15 @@ function cecho() {
 cd "$(dirname "$0")"
 
 cecho "Stopping and removing containers defined in podman compose.yml..."
-podman compose down --remove-orphans -v
+podman compose stop -t 0 2>/dev/null || true
+podman compose down --remove-orphans -v 2>/dev/null || true
 
-cecho "Containers removed." 
+# Force-remove any leftover containers from the project network
+LEFTOVER=$(podman ps -a --filter network=build_fen_network --format '{{.ID}}' 2>/dev/null)
+if [ -n "$LEFTOVER" ]; then
+    cecho 33 "Force-removing leftover containers..."
+    echo "$LEFTOVER" | xargs podman rm -f 2>/dev/null || true
+fi
+podman network rm build_fen_network 2>/dev/null || true
+
+cecho "Containers removed."
