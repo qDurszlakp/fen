@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -20,7 +21,7 @@ public class RestApiIntegrationTest extends DbWithKafka {
     @SneakyThrows
     void shouldReturnCookies() {
         // when
-        ResultActions result = mockMvc.perform(get("/rest/cookies"));
+        ResultActions result = mockMvc.perform(get("/rest/cookies").with(httpBasic("admin", "admin")));
 
         // then
         result.andExpect(status().isOk())

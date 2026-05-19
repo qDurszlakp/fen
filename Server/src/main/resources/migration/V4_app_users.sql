@@ -1,0 +1,10 @@
+--liquibase formatted sql
+
+--changeset mood:9
+CREATE TABLE APP_USERS
+(
+    USER_ID  BIGSERIAL    PRIMARY KEY,
+    USERNAME VARCHAR(64)  NOT NULL UNIQUE,
+    PASSWORD VARCHAR(256) NOT NULL,
+    ROLE     VARCHAR(32)  NOT NULL
+);
