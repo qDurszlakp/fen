@@ -30,7 +30,7 @@
         <spring.boot.starter.webflux.version>3.5.12</spring.boot.starter.webflux.version>
         <spring.boot.starter.web.version>3.5.12</spring.boot.starter.web.version>
         <spring.boot.starter.aop.version>3.5.12</spring.boot.starter.aop.version>
-        <spring.kafka.version>3.3.14</spring.kafka.version>
+        <spring.kafka.version>3.3.16</spring.kafka.version>
         <reactor.core.version>3.7.3</reactor.core.version>
         <postgresql.version>42.7.5</postgresql.version>
         <spring.boot.starter.test>3.5.12</spring.boot.starter.test>
