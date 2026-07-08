@@ -52,6 +52,7 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_KAFKA_LISTENER_AUTO_STARTUP=false
 
   foo:
     build:
