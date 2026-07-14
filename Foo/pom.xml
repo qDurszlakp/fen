@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>Foo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>Foo</name>
     <description>Foo module for Spring Boot</description>
 

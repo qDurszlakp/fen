@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>Server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>Server</name>
     <description>Server module for Spring Boot</description>
 
@@ -143,15 +142,21 @@
             <artifactId>junit-jupiter</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
         <!-- INTERNAL DEPENDENCIES -->
         <dependency>
             <groupId>com.sandbox</groupId>
             <artifactId>Util</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
         </dependency>
 
     </dependencies>
