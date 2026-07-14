@@ -1,7 +1,6 @@
 package com.sandbox.server.filter;
 
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,14 +35,19 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         String clientIp = resolveClientIp(request);
         Bucket bucket = bucketsPerIp.computeIfAbsent(clientIp, ip -> newBucket());
 
-        ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
-        if (probe.isConsumed()) {
-            filterChain.doFilter(request, response);
-        } else {
-            long retryAfterSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000;
+        if (bucket.getAvailableTokens() == 0) {
+            long retryAfterSeconds = bucket.estimateAbilityToConsume(1).getNanosToWaitForRefill() / 1_000_000_000;
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds));
             response.getWriter().write("Too many login attempts. Try again in " + retryAfterSeconds + "s.");
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+
+        // only failed credentials count
+        if (response.getStatus() == HttpStatus.UNAUTHORIZED.value()) {
+            bucket.tryConsume(1);
         }
     }
 

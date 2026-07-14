@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Server API Console</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --panel: #fff;
+            --border: #dcdfe4;
+            --text: #1f2328;
+            --muted: #656d76;
+            --get: #1f6feb;
+            --post: #2da44e;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .wrap { max-width: 900px; margin: 0 auto; }
+
+        h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+
+        .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .9rem; }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .auth { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+
+        input {
+            padding: .45rem .6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font: inherit;
+            min-width: 160px;
+        }
+
+        .auth-state {
+            font-size: .8rem;
+            color: var(--muted);
+            margin-left: auto;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            word-break: break-all;
+        }
+
+        h2 {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--muted);
+            margin: 1.5rem 0 .5rem;
+        }
+
+        .ep {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .6rem .75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--panel);
+            margin-bottom: .4rem;
+            flex-wrap: wrap;
+        }
+
+        .verb {
+            font-size: .7rem;
+            font-weight: 700;
+            padding: .2rem .45rem;
+            border-radius: 4px;
+            color: #fff;
+            min-width: 46px;
+            text-align: center;
+        }
+
+        .verb.GET { background: var(--get); }
+        .verb.POST { background: var(--post); }
+
+        code.path { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .88rem; }
+
+        .desc { color: var(--muted); font-size: .82rem; flex: 1; min-width: 140px; }
+
+        button {
+            padding: .35rem .8rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #f6f8fa;
+            font: inherit;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+
+        button:hover { background: #eaeef2; }
+
+        .ep input { min-width: 120px; font-size: .85rem; padding: .3rem .5rem; }
+
+        .out {
+            background: #0d1117;
+            color: #e6edf3;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: .82rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 6rem;
+            max-height: 26rem;
+            overflow: auto;
+        }
+
+        .status { font-weight: 700; }
+        .status.ok { color: #3fb950; }
+        .status.bad { color: #ff7b72; }
+
+        .links { font-size: .85rem; }
+        .links a { color: var(--get); margin-right: 1rem; }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0d1117;
+                --panel: #161b22;
+                --border: #30363d;
+                --text: #e6edf3;
+                --muted: #8b949e;
+            }
+            button { background: #21262d; color: var(--text); }
+            button:hover { background: #30363d; }
+            input { background: #0d1117; color: var(--text); }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Server API Console</h1>
+    <p class="sub">All endpoints of the Server module. Authentication: HTTP Basic.</p>
+
+    <div class="panel auth">
+        <input id="user" placeholder="username" autocomplete="username">
+        <input id="pass" type="password" placeholder="password" autocomplete="current-password">
+        <button onclick="saveAuth()">Set</button>
+        <button onclick="clearAuth()">Clear</button>
+        <span class="auth-state" id="authState">no credentials</span>
+    </div>
+
+    <h2>RestApi &mdash; /rest</h2>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/rest/cookies</code>
+        <span class="desc">Cookie list (static JSON)</span>
+        <button onclick="call('GET', '/rest/cookies')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/rest/posts</code>
+        <span class="desc">Posts fetched via WebClient</span>
+        <button onclick="call('GET', '/rest/posts')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/rest/passphrase</code>
+        <span class="desc">Passphrase fetched via WebClient</span>
+        <button onclick="call('GET', '/rest/passphrase')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/rest/risk</code>
+        <span class="desc">Throws BasicException &rarr; exercises ExnHandler</span>
+        <button onclick="call('GET', '/rest/risk')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb POST">POST</span>
+        <code class="path">/rest/file/{content}</code>
+        <span class="desc">Saves content to a file</span>
+        <input id="fileContent" placeholder="content" value="hello">
+        <button onclick="call('POST', '/rest/file/' + encodeURIComponent(v('fileContent')))">Send</button>
+    </div>
+
+    <h2>DbApi &mdash; /db</h2>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/db/accounts</code>
+        <span class="desc">Account list</span>
+        <button onclick="call('GET', '/db/accounts')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb GET">GET</span>
+        <code class="path">/db/cards</code>
+        <span class="desc">Card list</span>
+        <button onclick="call('GET', '/db/cards')">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb POST">POST</span>
+        <code class="path">/db/country</code>
+        <span class="desc">Creates a country</span>
+        <input id="cName" placeholder="name" value="Poland">
+        <input id="cCode" placeholder="code" value="PL">
+        <button onclick="call('POST', '/db/country', {name: v('cName'), code: v('cCode')})">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb POST">POST</span>
+        <code class="path">/db/account</code>
+        <span class="desc">Creates an account</span>
+        <input id="aNumber" placeholder="accountNumber" value="PL61109010140000071219812874">
+        <button onclick="call('POST', '/db/account', {accountNumber: v('aNumber')})">Send</button>
+    </div>
+
+    <h2>Response</h2>
+    <div class="out" id="out">Hit "Send" on any endpoint.</div>
+
+    <h2>Other</h2>
+    <div class="panel links">
+        <a href="/swagger-ui/index.html">Swagger UI</a>
+        <a href="/v3/api-docs">OpenAPI</a>
+        <a href="/actuator">Actuator</a>
+    </div>
+</div>
+
+<script>
+    let auth = null;
+
+    const v = id => document.getElementById(id).value;
+    const out = document.getElementById('out');
+    const authState = document.getElementById('authState');
+
+    function saveAuth() {
+        auth = 'Basic ' + btoa(v('user') + ':' + v('pass'));
+        authState.textContent = 'Authorization: ' + auth;
+    }
+
+    function clearAuth() {
+        auth = null;
+        authState.textContent = 'no credentials';
+    }
+
+    function render(statusHtml, method, path, text) {
+        out.innerHTML = statusHtml + '  ' + method + ' ' + path + '\n\n';
+        out.appendChild(document.createTextNode(text));
+    }
+
+    async function call(method, path, body) {
+        const headers = {};
+        if (auth) headers['Authorization'] = auth;
+        if (body) headers['Content-Type'] = 'application/json';
+
+        out.textContent = method + ' ' + path + ' ...';
+
+        try {
+            const res = await fetch(path, {
+                method: method,
+                headers: headers,
+                body: body ? JSON.stringify(body) : undefined
+            });
+
+            const text = await res.text();
+            let pretty = text;
+            try {
+                pretty = JSON.stringify(JSON.parse(text), null, 2);
+            } catch (ignored) {
+                pretty = text;
+            }
+
+            const cls = res.ok ? 'ok' : 'bad';
+            const status = '<span class="status ' + cls + '">' + res.status + ' ' + res.statusText + '</span>';
+            render(status, method, path, pretty || '(empty response)');
+        } catch (e) {
+            render('<span class="status bad">NETWORK ERROR</span>', method, path, String(e));
+        }
+    }
+</script>
+</body>
+</html>
