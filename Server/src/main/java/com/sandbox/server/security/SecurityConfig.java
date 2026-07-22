@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/actuator/**",
+                                "/mcp/**",
                                 "/",
                                 "/index.html",
                                 "/css/**",

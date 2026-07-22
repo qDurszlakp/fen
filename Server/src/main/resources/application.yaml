@@ -17,6 +17,13 @@ spring:
         format_sql: true
         highlight_sql: true
 
+  ai:
+    mcp:
+      server:
+        name: fen-server
+        version: 0.0.1
+        protocol: STATELESS
+
 files:
   baseDir: "/app/data/Data.txt"
 
