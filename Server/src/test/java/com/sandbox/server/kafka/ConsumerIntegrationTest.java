@@ -25,7 +25,7 @@ public class ConsumerIntegrationTest extends DbWithKafka {
         // given
         String messageToSend = "Hello Test!";
         String topicName = KafkaTopicInfo.FOO_LOGGING.getTopicName();
-        String expectedLogMessage = "[Server] Received message from topic " + topicName + ": " + messageToSend;
+        String expectedLogMessage = "[Server] Received message from topic " + topicName + " (partition 0): " + messageToSend;
 
         // when
         kafkaTemplate.send(topicName, messageToSend);
