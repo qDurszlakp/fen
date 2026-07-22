@@ -31,7 +31,7 @@ public class McpTools {
     @Tool(description = "Creates a new country and returns the saved record")
     public CountryDto createCountry(
             @ToolParam(description = "Full country name, e.g. Poland") String name,
-            @ToolParam(description = "ISO country code, e.g. PL") String code) {
+            @ToolParam(description = "ISO country code, e.g. 95114020040000300278655181") String code) {
         CreateCountryDto dto = new CreateCountryDto();
         dto.setName(name);
         dto.setCode(code);
