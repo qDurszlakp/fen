@@ -1,11 +1,14 @@
 package com.sandbox.server.controller;
 
 import com.sandbox.server.exception.BasicException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -14,18 +17,6 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class ExnHandler {
-
-    @ExceptionHandler(Exception.class)
-    private ResponseEntity<String> genericError(Exception e) {
-
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Undefined Error");
-
-        log.error("Undefined error: {}", e.getMessage(), e);
-
-        return new ResponseEntity<>("Undefined Error", HttpStatus.BAD_REQUEST);
-    }
 
     @ExceptionHandler(BasicException.class)
     private ResponseEntity<String> genericError(BasicException e) {
@@ -37,6 +28,67 @@ public class ExnHandler {
         log.error("Undefined error: {}", e.getMessage(), e);
 
         return new ResponseEntity<>("Generic Error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Thrown when a {@code @Valid @RequestBody} fails validation.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    private ResponseEntity<Map<String, Object>> validationError(MethodArgumentNotValidException e) {
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        e.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        e.getBindingResult().getGlobalErrors()
+                .forEach(error -> errors.put(error.getObjectName(), error.getDefaultMessage()));
+
+        log.warn("Request body validation failed: {}", errors);
+
+        return new ResponseEntity<>(validationBody(errors), HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Thrown when constraints placed directly on controller method parameters
+     * (e.g. {@code @PathVariable}, {@code @RequestParam}) fail validation.
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    private ResponseEntity<Map<String, Object>> validationError(HandlerMethodValidationException e) {
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        e.getParameterValidationResults().forEach(result -> {
+            String name = result.getMethodParameter().getParameterName();
+            result.getResolvableErrors()
+                    .forEach(error -> errors.put(name, error.getDefaultMessage()));
+        });
+
+        log.warn("Request parameter validation failed: {}", errors);
+
+        return new ResponseEntity<>(validationBody(errors), HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Thrown when validation fails on a {@code @Validated} bean outside the web layer.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    private ResponseEntity<Map<String, Object>> validationError(ConstraintViolationException e) {
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        e.getConstraintViolations()
+                .forEach(violation -> errors.put(violation.getPropertyPath().toString(), violation.getMessage()));
+
+        log.warn("Constraint validation failed: {}", errors);
+
+        return new ResponseEntity<>(validationBody(errors), HttpStatus.BAD_REQUEST);
+    }
+
+    private Map<String, Object> validationBody(Map<String, String> errors) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", "Validation Error");
+        body.put("errors", errors);
+
+        return body;
     }
 
 }

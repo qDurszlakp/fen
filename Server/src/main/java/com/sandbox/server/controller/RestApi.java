@@ -5,6 +5,8 @@ import com.sandbox.server.client.PostsWebClient;
 import com.sandbox.server.dto.PostDto;
 import com.sandbox.server.exception.BasicException;
 import com.sandbox.server.service.FileService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +39,11 @@ public class RestApi {
     }
 
     @PostMapping("/file/{content}")
-    public ResponseEntity<Void> file(@PathVariable("content") String content) {
+    public ResponseEntity<Void> file(
+            @PathVariable("content")
+            @NotBlank(message = "Content must not be blank")
+            @Size(max = 1000, message = "Content must not exceed 1000 characters")
+            String content) {
         fileService.save(content);
         return ResponseEntity.ok().build();
     }

@@ -2,6 +2,7 @@ package com.sandbox.server.controller;
 
 import com.sandbox.server.dto.*;
 import com.sandbox.server.service.DbService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +28,12 @@ public class DbApi {
     }
 
     @PostMapping("/country")
-    public ResponseEntity<CountryDto> createCountry(@RequestBody CreateCountryDto country) {
+    public ResponseEntity<CountryDto> createCountry(@Valid @RequestBody CreateCountryDto country) {
         return ResponseEntity.status(HttpStatus.CREATED).body(dbService.createCountry(country));
     }
 
     @PostMapping("/account")
-    public ResponseEntity<AccountDto> createAccount(@RequestBody CreateAccountDto account) {
+    public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountDto account) {
         return ResponseEntity.status(HttpStatus.CREATED).body(dbService.createAccount(account));
     }
 
