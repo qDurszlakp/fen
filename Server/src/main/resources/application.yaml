@@ -3,9 +3,12 @@ server:
 
 spring:
   datasource:
-    url: "jdbc:postgresql://db:5432/dev_user"
+    url: "jdbc:postgresql://postgres:5432/dev_user"
     username: "dev_user"
     password: "dev"
+
+  mongodb:
+    uri: "mongodb://dev_user:dev@mongo:27017/sandbox?authSource=admin"
 
   liquibase:
     change-log: "classpath:liquibase-changeLog.xml"

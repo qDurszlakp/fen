@@ -17,13 +17,57 @@ paths:
         required: true
         schema:
           type: string
+          maxLength: 1000
+          minLength: 0
       responses:
         "200":
           description: OK
-  /db/country:
+  /orders:
+    get:
+      tags:
+      - order-api
+      operationId: orders
+      parameters:
+      - name: customer
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: city
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
     post:
       tags:
-      - db-api
+      - order-api
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Order"
+  /countries:
+    post:
+      tags:
+      - banking-api
       operationId: createCountry
       requestBody:
         content:
@@ -38,10 +82,23 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/CountryDto"
-  /db/account:
+  /accounts:
+    get:
+      tags:
+      - banking-api
+      operationId: accounts
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountDto"
     post:
       tags:
-      - db-api
+      - banking-api
       operationId: createAccount
       requestBody:
         content:
@@ -102,10 +159,10 @@ paths:
             application/json:
               schema:
                 type: string
-  /db/cards:
+  /cards:
     get:
       tags:
-      - db-api
+      - banking-api
       operationId: cards
       responses:
         "200":
@@ -116,29 +173,62 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CardDto"
-  /db/accounts:
-    get:
-      tags:
-      - db-api
-      operationId: accounts
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AccountDto"
 components:
   schemas:
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+    Item:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+        price:
+          type: number
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        customer:
+          type: string
+        address:
+          $ref: "#/components/schemas/Address"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        total:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
     CreateCountryDto:
       type: object
       properties:
         name:
           type: string
+          maxLength: 50
+          minLength: 0
         code:
           type: string
+          maxLength: 10
+          minLength: 0
+          pattern: "[A-Za-z0-9]+"
+      required:
+      - code
+      - name
     CountryDto:
       type: object
       properties:
@@ -147,19 +237,33 @@ components:
           format: int64
         name:
           type: string
+          maxLength: 50
+          minLength: 0
         code:
           type: string
+          maxLength: 10
+          minLength: 0
+          pattern: "[A-Za-z0-9]+"
         insertTime:
           type: string
           format: date-time
         version:
           type: integer
           format: int32
+      required:
+      - code
+      - id
+      - name
+      - version
     CreateAccountDto:
       type: object
       properties:
         accountNumber:
           type: string
+          minLength: 1
+          pattern: "\\d{26}"
+      required:
+      - accountNumber
     AccountDto:
       type: object
       properties:
@@ -171,6 +275,12 @@ components:
           format: int32
         accountNumber:
           type: string
+          minLength: 1
+          pattern: "\\d{26}"
+      required:
+      - accountNumber
+      - id
+      - version
     PostDto:
       type: object
       properties:
@@ -182,8 +292,15 @@ components:
           format: int64
         title:
           type: string
+          minLength: 1
         body:
           type: string
+          minLength: 1
+      required:
+      - body
+      - id
+      - title
+      - userId
     CardDto:
       type: object
       properties:
@@ -195,5 +312,12 @@ components:
           format: int32
         cardNumber:
           type: string
+          minLength: 1
+          pattern: "\\d{16}"
         accountNumber:
           type: string
+          pattern: "\\d{26}"
+      required:
+      - cardNumber
+      - id
+      - version

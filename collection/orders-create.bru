@@ -1,0 +1,31 @@
+meta {
+  name: /orders
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{url}}/orders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "customer": "anna",
+    "address": {
+      "street": "Dluga 1",
+      "city": "Gdansk",
+      "postalCode": "80-001"
+    },
+    "items": [
+      { "sku": "A-1", "name": "Keyboard", "quantity": 2, "price": 150.00 },
+      { "sku": "B-2", "name": "Mouse", "quantity": 1, "price": 80.00 }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -24,7 +24,8 @@ services:
     image: 'server:latest'
     restart: on-failure
     depends_on:
-      - db
+      - postgres
+      - mongo
       - kafka
     networks:
       - fen_network
@@ -43,7 +44,8 @@ services:
     ports:
       - "5005:5005"
     depends_on:
-      - db
+      - postgres
+      - mongo
       - kafka
     networks:
       - fen_network
@@ -70,9 +72,9 @@ services:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-  db:
+  postgres:
     image: 'docker.io/library/postgres:17.3-alpine'
-    container_name: database
+    container_name: postgres
     networks:
       - fen_network
     ports:
@@ -80,6 +82,17 @@ services:
     environment:
       - POSTGRES_USER=dev_user
       - POSTGRES_PASSWORD=dev
+
+  mongo:
+    image: 'docker.io/library/mongo:8.2'
+    container_name: mongo
+    networks:
+      - fen_network
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=dev_user
+      - MONGO_INITDB_ROOT_PASSWORD=dev
 
   zookeeper:
     image: 'docker.io/confluentinc/cp-zookeeper:7.0.1'

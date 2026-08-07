@@ -1,19 +1,18 @@
 meta {
-  name: /db/country
+  name: /accounts
   type: http
-  seq: 9
+  seq: 10
 }
 
 post {
-  url: {{url}}/db/country
+  url: {{url}}/accounts
   body: json
   auth: inherit
 }
 
 body:json {
   {
-   "name": "foo",
-   "code": "f1"
+   "accountNumber": "95114020040000300275345100"
   }
 }
 
