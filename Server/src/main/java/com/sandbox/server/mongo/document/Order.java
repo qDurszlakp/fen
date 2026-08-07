@@ -2,6 +2,7 @@ package com.sandbox.server.mongo.document;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -19,6 +20,14 @@ public record Order(
 
         String customer,
 
+        OrderStatus status,
+
+        String currency,
+
+        String channel,
+
+        String note,
+
         Address address,
 
         List<Item> items,
@@ -28,7 +37,9 @@ public record Order(
         Instant createdAt
 ) {
 
-    public record Address(String street, String city, String postalCode) {
+    public enum OrderStatus {NEW, PAID, SHIPPED, DELIVERED, CANCELLED}
+
+    public record Address(String street, String city, String postalCode, String country) {
     }
 
     public record Item(String sku, String name, int quantity, BigDecimal price) {

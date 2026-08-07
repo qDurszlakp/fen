@@ -14,6 +14,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @ControllerAdvice
@@ -31,10 +32,18 @@ public class ExnHandler {
         return new ResponseEntity<>("Generic Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /**
-     * Thrown when a save is built from a stale read - someone else modified the
-     * document in the meantime. 409 tells the client to re-read and retry.
-     */
+    @ExceptionHandler(NoSuchElementException.class)
+    private ResponseEntity<Map<String, Object>> notFound(NoSuchElementException e) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", e.getMessage());
+
+        log.warn("Not found: {}", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(OptimisticLockingFailureException.class)
     private ResponseEntity<Map<String, Object>> conflict(OptimisticLockingFailureException e) {
 

@@ -6,6 +6,30 @@ servers:
 - url: http://localhost
   description: Generated server url
 paths:
+  /orders/{id}:
+    put:
+      tags:
+      - order-api
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Order"
   /rest/file/{content}:
     post:
       tags:
@@ -28,16 +52,11 @@ paths:
       - order-api
       operationId: orders
       parameters:
-      - name: customer
+      - name: filter
         in: query
-        required: false
+        required: true
         schema:
-          type: string
-      - name: city
-        in: query
-        required: false
-        schema:
-          type: string
+          $ref: "#/components/schemas/OrderFilter"
       responses:
         "200":
           description: OK
@@ -184,6 +203,8 @@ components:
           type: string
         postalCode:
           type: string
+        country:
+          type: string
     Item:
       type: object
       properties:
@@ -201,7 +222,24 @@ components:
       properties:
         id:
           type: string
+        version:
+          type: integer
+          format: int64
         customer:
+          type: string
+        status:
+          type: string
+          enum:
+          - NEW
+          - PAID
+          - SHIPPED
+          - DELIVERED
+          - CANCELLED
+        currency:
+          type: string
+        channel:
+          type: string
+        note:
           type: string
         address:
           $ref: "#/components/schemas/Address"
@@ -301,6 +339,39 @@ components:
       - id
       - title
       - userId
+    OrderFilter:
+      type: object
+      properties:
+        customer:
+          type: string
+        status:
+          type: string
+          enum:
+          - NEW
+          - PAID
+          - SHIPPED
+          - DELIVERED
+          - CANCELLED
+        currency:
+          type: string
+        channel:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        sku:
+          type: string
+        minTotal:
+          type: number
+        maxTotal:
+          type: number
+        createdFrom:
+          type: string
+          format: date-time
+        createdTo:
+          type: string
+          format: date-time
     CardDto:
       type: object
       properties:

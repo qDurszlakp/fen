@@ -13,6 +13,7 @@
             --muted: #656d76;
             --get: #1f6feb;
             --post: #2da44e;
+            --put: #bf8700;
         }
 
         * { box-sizing: border-box; }
@@ -89,6 +90,15 @@
 
         .verb.GET { background: var(--get); }
         .verb.POST { background: var(--post); }
+        .verb.PUT { background: var(--put); }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: .4rem;
+        }
+
+        .filters input { min-width: 0; width: 100%; font-size: .85rem; padding: .3rem .5rem; }
 
         code.path { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .88rem; }
 
@@ -235,7 +245,20 @@
         <span class="desc">Creates an order; address and items are embedded, total is computed</span>
         <input id="oCustomer" placeholder="customer" value="anna">
         <input id="oCity" placeholder="city" value="Gdansk">
+        <input id="oStatus" placeholder="status" value="PAID">
+        <input id="oCurrency" placeholder="currency" value="PLN">
+        <input id="oChannel" placeholder="channel" value="WEB">
         <button onclick="createOrder()">Send</button>
+    </div>
+
+    <div class="ep">
+        <span class="verb PUT">PUT</span>
+        <code class="path">/orders/{id}</code>
+        <span class="desc">Full replace; send the version you read or get 409</span>
+        <input id="uId" placeholder="id">
+        <input id="uVersion" placeholder="version" value="0">
+        <input id="uCity" placeholder="city" value="Sopot">
+        <button onclick="updateOrder()">Send</button>
     </div>
 
     <div class="ep">
@@ -245,20 +268,24 @@
         <button onclick="call('GET', '/orders')">Send</button>
     </div>
 
-    <div class="ep">
-        <span class="verb GET">GET</span>
-        <code class="path">/orders?customer=</code>
-        <span class="desc">Derived query on a top-level field</span>
-        <input id="qCustomer" placeholder="customer" value="anna">
-        <button onclick="call('GET', '/orders?customer=' + encodeURIComponent(v('qCustomer')))">Send</button>
-    </div>
-
-    <div class="ep">
-        <span class="verb GET">GET</span>
-        <code class="path">/orders?city=</code>
-        <span class="desc">Query reaching into the embedded address document</span>
-        <input id="qCity" placeholder="city" value="Gdansk">
-        <button onclick="call('GET', '/orders?city=' + encodeURIComponent(v('qCity')))">Send</button>
+    <div class="panel">
+        <div class="desc" style="margin-bottom:.6rem">
+            <b>GET /orders</b> &mdash; filters. Blank fields are skipped; the rest are ANDed.
+        </div>
+        <div class="filters">
+            <input id="fCustomer" placeholder="customer">
+            <input id="fStatus" placeholder="status (NEW, PAID, ...)">
+            <input id="fCurrency" placeholder="currency">
+            <input id="fChannel" placeholder="channel">
+            <input id="fCity" placeholder="city">
+            <input id="fCountry" placeholder="country">
+            <input id="fSku" placeholder="sku (inside items)">
+            <input id="fMinTotal" placeholder="minTotal">
+            <input id="fMaxTotal" placeholder="maxTotal">
+            <input id="fCreatedFrom" placeholder="createdFrom (2026-01-01T00:00:00Z)">
+            <input id="fCreatedTo" placeholder="createdTo">
+        </div>
+        <button style="margin-top:.6rem" onclick="filterOrders()">Send</button>
     </div>
 
     <h2>Response</h2>
@@ -289,15 +316,50 @@
         authState.textContent = 'no credentials';
     }
 
+    const ITEMS = [
+        {sku: 'A-1', name: 'Keyboard', quantity: 2, price: 150.00},
+        {sku: 'B-2', name: 'Mouse', quantity: 1, price: 80.00}
+    ];
+
     function createOrder() {
         call('POST', '/orders', {
             customer: v('oCustomer'),
-            address: {street: 'Dluga 1', city: v('oCity'), postalCode: '80-001'},
-            items: [
-                {sku: 'A-1', name: 'Keyboard', quantity: 2, price: 150.00},
-                {sku: 'B-2', name: 'Mouse', quantity: 1, price: 80.00}
-            ]
+            status: v('oStatus'),
+            currency: v('oCurrency'),
+            channel: v('oChannel'),
+            address: {street: 'Dluga 1', city: v('oCity'), postalCode: '80-001', country: 'PL'},
+            items: ITEMS
         });
+    }
+
+    function updateOrder() {
+        call('PUT', '/orders/' + v('uId'), {
+            version: Number(v('uVersion')),
+            customer: v('oCustomer'),
+            status: v('oStatus'),
+            currency: v('oCurrency'),
+            channel: v('oChannel'),
+            address: {street: 'Dluga 1', city: v('uCity'), postalCode: '80-001', country: 'PL'},
+            items: ITEMS
+        });
+    }
+
+    // one entry here per field on OrderFilter
+    const FILTERS = {
+        customer: 'fCustomer', status: 'fStatus', currency: 'fCurrency', channel: 'fChannel',
+        city: 'fCity', country: 'fCountry', sku: 'fSku',
+        minTotal: 'fMinTotal', maxTotal: 'fMaxTotal',
+        createdFrom: 'fCreatedFrom', createdTo: 'fCreatedTo'
+    };
+
+    function filterOrders() {
+        const params = new URLSearchParams();
+        for (const [param, id] of Object.entries(FILTERS)) {
+            const value = v(id).trim();
+            if (value) params.append(param, value);
+        }
+        const qs = params.toString();
+        call('GET', '/orders' + (qs ? '?' + qs : ''));
     }
 
     function render(statusHtml, method, path, text) {

@@ -30,7 +30,11 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
     private static final String NEW_ORDER = """
             {
               "customer": "anna",
-              "address": { "street": "Dluga 1", "city": "Gdansk", "postalCode": "80-001" },
+              "status": "PAID",
+              "currency": "PLN",
+              "channel": "WEB",
+              "note": "leave at the door",
+              "address": { "street": "Dluga 1", "city": "Gdansk", "postalCode": "80-001", "country": "PL" },
               "items": [
                 { "sku": "A-1", "name": "Keyboard", "quantity": 2, "price": 150.00 },
                 { "sku": "B-2", "name": "Mouse",    "quantity": 1, "price": 80.00 }
@@ -52,10 +56,66 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.version").value(0))
                 .andExpect(jsonPath("$.customer").value("anna"))
+                .andExpect(jsonPath("$.status").value("PAID"))
+                .andExpect(jsonPath("$.currency").value("PLN"))
                 .andExpect(jsonPath("$.address.city").value("Gdansk"))
+                .andExpect(jsonPath("$.address.country").value("PL"))
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.total").value(380.00))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldCombineEveryFilterWithAnd() {
+        // given
+        createOrder();
+
+        // when - all parameters are bound onto OrderFilter and ANDed together
+        ResultActions result = mockMvc.perform(get("/orders")
+                .param("customer", "anna")
+                .param("status", "PAID")
+                .param("currency", "PLN")
+                .param("channel", "WEB")
+                .param("city", "Gdansk")
+                .param("country", "PL")
+                .param("sku", "B-2")
+                .param("minTotal", "300")
+                .param("maxTotal", "400")
+                .with(httpBasic("admin", "admin")));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].customer").value("anna"));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturn404WhenUpdatingUnknownOrder() {
+        // when
+        ResultActions result = updateOrder("6a75bc568cfb9c7c32c14746", orderWith("0", "Sopot"));
+
+        // then
+        result.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(containsString("no order")));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturnNothingWhenOneFilterMisses() {
+        // given
+        createOrder();
+
+        // when - the total range excludes it, everything else matches
+        ResultActions result = mockMvc.perform(get("/orders")
+                .param("city", "Gdansk")
+                .param("minTotal", "1000")
+                .with(httpBasic("admin", "admin")));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
@@ -148,7 +208,10 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
                 {
                   "version": %s,
                   "customer": "anna",
-                  "address": { "street": "Dluga 1", "city": "%s", "postalCode": "80-001" },
+                  "status": "PAID",
+                  "currency": "PLN",
+                  "channel": "WEB",
+                  "address": { "street": "Dluga 1", "city": "%s", "postalCode": "80-001", "country": "PL" },
                   "items": [ { "sku": "A-1", "name": "Keyboard", "quantity": 2, "price": 150.00 } ]
                 }
                 """.formatted(version, city);

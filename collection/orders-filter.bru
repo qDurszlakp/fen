@@ -1,0 +1,35 @@
+meta {
+  name: /orders?filters
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{url}}/orders?customer=anna&status=PAID&currency=PLN&channel=WEB&city=Gdansk&country=PL&sku=B-2&minTotal=300&maxTotal=400
+  body: none
+  auth: inherit
+}
+
+params:query {
+  customer: anna
+  status: PAID
+  currency: PLN
+  channel: WEB
+  city: Gdansk
+  country: PL
+  sku: B-2
+  minTotal: 300
+  maxTotal: 400
+  ~createdFrom: 2026-01-01T00:00:00Z
+  ~createdTo: 2027-01-01T00:00:00Z
+}
+
+docs {
+  Every parameter is optional and they are ANDed together.
+  Disabled ones (~) show the remaining OrderFilter fields.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

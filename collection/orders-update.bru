@@ -1,0 +1,41 @@
+meta {
+  name: /orders/{id}
+  type: http
+  seq: 14
+}
+
+put {
+  url: {{url}}/orders/{{orderId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "version": 0,
+    "customer": "anna",
+    "status": "SHIPPED",
+    "currency": "PLN",
+    "channel": "WEB",
+    "note": "leave at the door",
+    "address": {
+      "street": "Dluga 1",
+      "city": "Sopot",
+      "postalCode": "81-701",
+      "country": "PL"
+    },
+    "items": [
+      { "sku": "A-1", "name": "Keyboard", "quantity": 2, "price": 150.00 }
+    ]
+  }
+}
+
+docs {
+  Full replace. Send back the version you read - a stale one gets 409.
+  Set the orderId variable from a previous POST response.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

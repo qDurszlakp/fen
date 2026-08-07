@@ -1,6 +1,7 @@
 package com.sandbox.server.mongo.controller;
 
 import com.sandbox.server.mongo.document.Order;
+import com.sandbox.server.mongo.dto.OrderFilter;
 import com.sandbox.server.mongo.service.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,7 @@ public class OrderApi {
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> orders(@RequestParam(required = false) String customer,
-                                              @RequestParam(required = false) String city) {
-        return ResponseEntity.ok(orderService.find(customer, city));
+    public ResponseEntity<List<Order>> orders(OrderFilter filter) {
+        return ResponseEntity.ok(orderService.find(filter));
     }
 }
