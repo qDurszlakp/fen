@@ -21,6 +21,11 @@ public class OrderApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(order));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> update(@PathVariable String id, @RequestBody Order order) {
+        return ResponseEntity.ok(orderService.update(id, order));
+    }
+
     @GetMapping
     public ResponseEntity<List<Order>> orders(@RequestParam(required = false) String customer,
                                               @RequestParam(required = false) String city) {

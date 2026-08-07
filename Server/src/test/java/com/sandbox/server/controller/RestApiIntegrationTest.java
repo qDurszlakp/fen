@@ -1,6 +1,6 @@
 package com.sandbox.server.controller;
 
-import com.sandbox.DbWithKafka;
+import com.sandbox.BasicInfrastructure;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-public class RestApiIntegrationTest extends DbWithKafka {
+public class RestApiIntegrationTest extends BasicInfrastructure {
 
     @Autowired
     private MockMvc mockMvc;

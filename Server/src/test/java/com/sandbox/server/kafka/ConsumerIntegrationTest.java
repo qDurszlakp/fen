@@ -1,6 +1,6 @@
 package com.sandbox.server.kafka;
 
-import com.sandbox.DbWithKafka;
+import com.sandbox.BasicInfrastructure;
 import com.sandbox.util.kafka.KafkaTopicInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +14,7 @@ import static org.awaitility.Awaitility.await;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(OutputCaptureExtension.class)
-public class ConsumerIntegrationTest extends DbWithKafka {
+public class ConsumerIntegrationTest extends BasicInfrastructure {
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;

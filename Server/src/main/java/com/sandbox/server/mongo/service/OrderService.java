@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @AllArgsConstructor
@@ -20,17 +21,29 @@ public class OrderService {
     private final MongoTemplate mongoTemplate;
 
     public Order create(Order order) {
-        BigDecimal total = order.items().stream()
-                .map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         return repository.save(new Order(
+                null,
                 null,
                 order.customer(),
                 order.address(),
                 order.items(),
-                total,
+                total(order),
                 Instant.now()
+        ));
+    }
+
+    public Order update(String id, Order order) {
+        Order existing = repository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("no order " + id));
+
+        return repository.save(new Order(
+                id,
+                order.version(),
+                order.customer(),
+                order.address(),
+                order.items(),
+                total(order),
+                existing.createdAt()
         ));
     }
 
@@ -45,5 +58,11 @@ public class OrderService {
         }
 
         return mongoTemplate.find(query, Order.class);
+    }
+
+    private BigDecimal total(Order order) {
+        return order.items().stream()
+                .map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

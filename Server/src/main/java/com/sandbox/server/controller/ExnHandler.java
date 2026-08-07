@@ -3,6 +3,7 @@ package com.sandbox.server.controller;
 import com.sandbox.server.exception.BasicException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -28,6 +29,22 @@ public class ExnHandler {
         log.error("Undefined error: {}", e.getMessage(), e);
 
         return new ResponseEntity<>("Generic Error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Thrown when a save is built from a stale read - someone else modified the
+     * document in the meantime. 409 tells the client to re-read and retry.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    private ResponseEntity<Map<String, Object>> conflict(OptimisticLockingFailureException e) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", "Conflict - the document was modified by someone else, re-read it and retry");
+
+        log.warn("Optimistic locking conflict: {}", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
     /**

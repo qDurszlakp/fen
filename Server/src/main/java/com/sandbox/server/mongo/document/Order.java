@@ -1,6 +1,7 @@
 package com.sandbox.server.mongo.document;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -12,6 +13,9 @@ public record Order(
 
         @Id
         String id,
+
+        @Version
+        Long version,
 
         String customer,
 
