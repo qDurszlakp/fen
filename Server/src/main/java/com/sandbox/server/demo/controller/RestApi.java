@@ -1,0 +1,67 @@
+package com.sandbox.server.demo.controller;
+
+import com.sandbox.server.common.aspect.ThreadLog;
+import com.sandbox.server.demo.client.PostsWebClient;
+import com.sandbox.server.demo.dto.PostDto;
+import com.sandbox.server.common.exception.BasicException;
+import com.sandbox.server.demo.service.FileService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/rest")
+@RequiredArgsConstructor
+public class RestApi {
+
+    private final FileService fileService;
+    private final PostsWebClient postsWebClient;
+
+    @GetMapping(value = "/cookies", produces = "application/json")
+    public ResponseEntity<String> cookies() {
+
+        val cookies = """
+            [
+                {"name": "Cookie", "value": 1},
+                {"name": "Cookie", "value": 2},
+                {"name": "Cookie", "value": 3},
+                {"name": "Cookie", "value": 4},
+                {"name": "Cookie", "value": 5}
+            ]
+               \s""";
+
+        return ResponseEntity.ok(cookies);
+    }
+
+    @PostMapping("/file/{content}")
+    public ResponseEntity<Void> file(
+            @PathVariable @NotBlank(message = "Content must not be blank")
+            @Size(max = 1000, message = "Content must not exceed 1000 characters")
+            String content) {
+        fileService.save(content);
+        return ResponseEntity.ok().build();
+    }
+
+    @ThreadLog
+    @GetMapping("/posts")
+    public ResponseEntity<List<PostDto>> posts() {
+        val posts = postsWebClient.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/passphrase")
+    public ResponseEntity<String> passphrase() {
+        val pass = postsWebClient.getPassphrase();
+        return ResponseEntity.ok(pass);
+    }
+
+    @GetMapping("/risk")
+    public ResponseEntity<Void> risk() {
+        throw new BasicException("Exception here!!");
+    }
+}

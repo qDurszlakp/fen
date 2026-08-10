@@ -1,6 +1,6 @@
 package com.sandbox.server.security;
 
-import com.sandbox.server.filter.LoginRateLimitFilter;
+import com.sandbox.server.common.ratelimit.LoginRateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

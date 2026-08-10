@@ -40,13 +40,24 @@ Education Sandbox
 
 Maven multi-module project:
 
-- `Server` - main app; layered structure: `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `client`, `aspect`, `filter`, `security`, `kafka`, `exception`, `mcp`, `mongo`, `playground`
+- `Server` - main app, **package by feature**: each business area owns its own layers.
+  - `banking` - accounts, cards, countries over PostgreSQL (`controller`, `service`, `mapper`, `entity`, `repository`, `dto`)
+  - `order` - orders over MongoDB (`controller`, `service`, `document`, `repository`, `dto`)
+  - `audit` - request auditing (`filter`, `entity`, `repository`)
+  - `demo` - the `/rest` playground endpoints (`controller`, `service`, `client`, `dto`)
+  - `security` - authentication, seeded user, filter chain
+  - `mcp` - (WIP) MCP tools
+  - `playground` - standalone educational classes, unrelated to the running app
+  - `common` - cross-cutting only: `exception` (incl. the global `ExnHandler`), `aspect`, `kafka`, `ratelimit`
+
+  Package names describe the domain, never the storage engine - the same rule the
+  endpoint paths follow. Hence `order`, not `mongo`.
 - `Foo` - auxiliary service (`controller`, `service`, `kafka`)
 - `Util` - shared code (`kafka`)
 
 Data flow: clients call `Server` REST/DB APIs → JPA persists to PostgreSQL. `Server` also calls external `Foo` service (`http://foo:8090/secret`) and an external JSONPlaceholder API. `Foo` produces log events to Kafka which `Server` consumes (`FooLogConsumer`). Cross-cutting concerns handled by servlet filters (audit, login rate limit) and AOP aspects.
 
-Polyglot persistence: JPA and MongoDB coexist in `Server`. The two stores are kept in separate package trees - JPA in `entity` + `repository`, Mongo in `mongo.document` + `mongo.repository` - so Spring Data never has to guess which store a repository belongs to. `playground` holds standalone educational classes, unrelated to the running application.
+Polyglot persistence: JPA and MongoDB coexist in `Server`. The two stores live in separate feature packages - JPA in `banking.entity` + `banking.repository`, Mongo in `order.document` + `order.repository`. Spring Data resolves store assignment from the annotations on the domain types (`@Entity` vs `@Document`) and logs a "Could not safely identify store assignment" warning for each foreign candidate; adding explicit `@EnableJpaRepositories` / `@EnableMongoRepositories` with `basePackages` on `ServerApp` silences it.
 
 ## Setup / Run
 

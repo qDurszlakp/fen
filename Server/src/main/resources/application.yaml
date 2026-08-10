@@ -37,11 +37,6 @@ data:
 audit:
   patterns: '/**'
 
-app:
-  security:
-    seed:
-      username: admin
-      password: admin
 
 logging:
   level:

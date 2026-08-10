@@ -242,7 +242,7 @@
     <div class="ep">
         <span class="verb POST">POST</span>
         <code class="path">/orders</code>
-        <span class="desc">Creates an order; address and items are embedded, total is computed</span>
+        <span class="desc">Creates an order</span>
         <input id="oCustomer" placeholder="customer" value="anna">
         <input id="oCity" placeholder="city" value="Gdansk">
         <input id="oStatus" placeholder="status" value="PAID">
@@ -254,7 +254,7 @@
     <div class="ep">
         <span class="verb PUT">PUT</span>
         <code class="path">/orders/{id}</code>
-        <span class="desc">Full replace; send the version you read or get 409</span>
+        <span class="desc">Full replace, send the version you read or get 409</span>
         <input id="uId" placeholder="id">
         <input id="uVersion" placeholder="version" value="0">
         <input id="uCity" placeholder="city" value="Sopot">
@@ -270,7 +270,7 @@
 
     <div class="panel">
         <div class="desc" style="margin-bottom:.6rem">
-            <b>GET /orders</b> &mdash; filters. Blank fields are skipped; the rest are ANDed.
+            <b>GET /orders</b> Blank fields are skipped the rest are ANDed.
         </div>
         <div class="filters">
             <input id="fCustomer" placeholder="customer">

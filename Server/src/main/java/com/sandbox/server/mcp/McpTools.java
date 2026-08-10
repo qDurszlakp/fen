@@ -1,10 +1,10 @@
 package com.sandbox.server.mcp;
 
-import com.sandbox.server.dto.AccountDto;
-import com.sandbox.server.dto.CardDto;
-import com.sandbox.server.dto.CountryDto;
-import com.sandbox.server.dto.CreateCountryDto;
-import com.sandbox.server.service.DbService;
+import com.sandbox.server.banking.dto.AccountDto;
+import com.sandbox.server.banking.dto.CardDto;
+import com.sandbox.server.banking.dto.CountryDto;
+import com.sandbox.server.banking.dto.CreateCountryDto;
+import com.sandbox.server.banking.service.BankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -16,16 +16,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class McpTools {
 
-    private final DbService dbService;
+    private final BankingService bankingService;
 
     @Tool(description = "Returns the list of all accounts in the database")
     public List<AccountDto> accounts() {
-        return dbService.getAccounts();
+        return bankingService.getAccounts();
     }
 
     @Tool(description = "Returns the list of all cards in the database")
     public List<CardDto> cards() {
-        return dbService.getCards();
+        return bankingService.getCards();
     }
 
     @Tool(description = "Creates a new country and returns the saved record")
@@ -35,6 +35,6 @@ public class McpTools {
         CreateCountryDto dto = new CreateCountryDto();
         dto.setName(name);
         dto.setCode(code);
-        return dbService.createCountry(dto);
+        return bankingService.createCountry(dto);
     }
 }

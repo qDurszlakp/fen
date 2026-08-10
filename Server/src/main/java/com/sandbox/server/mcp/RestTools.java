@@ -1,8 +1,8 @@
 package com.sandbox.server.mcp;
 
-import com.sandbox.server.client.PostsWebClient;
-import com.sandbox.server.dto.PostDto;
-import com.sandbox.server.service.FileService;
+import com.sandbox.server.demo.client.PostsWebClient;
+import com.sandbox.server.demo.dto.PostDto;
+import com.sandbox.server.demo.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
