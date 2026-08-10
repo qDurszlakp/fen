@@ -2,10 +2,9 @@ package com.sandbox.server.audit.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -23,8 +22,8 @@ public class Audit {
     private String url;
 
     @Column(name = "USER_UUID")
-    private UUID userUUID;
+    private UUID userUuid;
 
     @Column(name = "ACTION_TIME")
-    private ZonedDateTime actionTime;
+    private Instant actionTime;
 }
