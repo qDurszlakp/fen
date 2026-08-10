@@ -325,6 +325,8 @@
             <input id="auUrl" placeholder="url">
             <input id="auFrom" placeholder="from (2026-08-08T00:00:00Z)">
             <input id="auTo" placeholder="to (2026-08-09T00:00:00Z)">
+            <input id="auPage" placeholder="page" value="0">
+            <input id="auSize" placeholder="size" value="20">
         </div>
         <button style="margin-top:.6rem" onclick="listAudits()">Send</button>
     </div>
@@ -395,7 +397,7 @@
         createdFrom: 'fCreatedFrom', createdTo: 'fCreatedTo'
     };
 
-    const AUDIT_FILTERS = {userUuid: 'auUser', url: 'auUrl', from: 'auFrom', to: 'auTo'};
+    const AUDIT_FILTERS = {userUuid: 'auUser', url: 'auUrl', from: 'auFrom', to: 'auTo', page: 'auPage', size: 'auSize'};
 
     function listAudits() {
         call('GET', '/audits' + queryString(AUDIT_FILTERS));

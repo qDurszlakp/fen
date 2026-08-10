@@ -10,6 +10,11 @@ spring:
   mongodb:
     uri: "mongodb://dev_user:dev@mongo:27017/sandbox?authSource=admin"
 
+  data:
+    web:
+      pageable:
+        max-page-size: 200
+
   liquibase:
     change-log: "classpath:liquibase-changeLog.xml"
 

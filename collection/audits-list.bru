@@ -5,12 +5,15 @@ meta {
 }
 
 get {
-  url: {{url}}/audits
+  url: {{url}}/audits?page=0&size=20
   body: none
   auth: inherit
 }
 
 params:query {
+  page: 0
+  size: 20
+  ~sort: actionTime,desc
   ~userUuid: 00000000-0000-0000-0000-000000000000
   ~url: /rest/cookies
   ~from: 2026-01-01T00:00:00Z
@@ -20,6 +23,9 @@ params:query {
 docs {
   Newest first. All filters optional and ANDed.
   from/to are ISO-8601 instants with an offset, matching the TIMESTAMPTZ column.
+
+  Paging: page is 0-based, size defaults to 20 and is capped at 200
+  (spring.data.web.pageable.max-page-size).
 }
 
 settings {

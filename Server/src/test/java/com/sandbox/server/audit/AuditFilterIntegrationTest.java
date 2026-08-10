@@ -82,9 +82,30 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .param("to", Instant.now().plusSeconds(60).toString())
                         .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].userUuid").value(admin.getId().toString()))
-                .andExpect(jsonPath("$[0].actionTime").isNotEmpty());
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.content[0].userUuid").value(admin.getId().toString()))
+                .andExpect(jsonPath("$.content[0].actionTime").isNotEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldPageTheListing() {
+        // given - three audited calls
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(get("/rest/cookies").with(httpBasic("admin", "admin"))).andExpect(status().isOk());
+        }
+
+        // when - one row per page
+        mockMvc.perform(get("/audits")
+                        .param("size", "1")
+                        .param("page", "0")
+                        .with(httpBasic("admin", "admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(4))
+                .andExpect(jsonPath("$.totalPages").value(4))
+                .andExpect(jsonPath("$.number").value(0));
     }
 
     @Test
@@ -98,7 +119,8 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .param("to", Instant.now().minusSeconds(3600).toString())
                         .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     @Test
