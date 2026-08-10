@@ -1,0 +1,28 @@
+meta {
+  name: /audits
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{url}}/audits
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~userUuid: 00000000-0000-0000-0000-000000000000
+  ~url: /rest/cookies
+  ~from: 2026-01-01T00:00:00Z
+  ~to: 2027-01-01T00:00:00Z
+}
+
+docs {
+  Newest first. All filters optional and ANDed.
+  from/to are ISO-8601 instants with an offset, matching the TIMESTAMPTZ column.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

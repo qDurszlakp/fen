@@ -17,6 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AuditFilterIntegrationTest extends BasicInfrastructure {
@@ -62,6 +63,42 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
 
         // then
         assertThat(auditRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldListAuditRowsFilteredByUserAndTimeRange() {
+        // given - two audited calls
+        Instant from = Instant.now().minusSeconds(60);
+        mockMvc.perform(get("/rest/cookies").with(httpBasic("admin", "admin"))).andExpect(status().isOk());
+        mockMvc.perform(get("/rest/risk").with(httpBasic("admin", "admin")));
+
+        AppUser admin = appUserRepository.findByUsername("admin").orElseThrow();
+
+        // when - filtered by user and a window that covers both
+        mockMvc.perform(get("/audits")
+                        .param("userUuid", admin.getId().toString())
+                        .param("from", from.toString())
+                        .param("to", Instant.now().plusSeconds(60).toString())
+                        .with(httpBasic("admin", "admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].userUuid").value(admin.getId().toString()))
+                .andExpect(jsonPath("$[0].actionTime").isNotEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturnNothingForATimeRangeInThePast() {
+        // given
+        mockMvc.perform(get("/rest/cookies").with(httpBasic("admin", "admin"))).andExpect(status().isOk());
+
+        // when
+        mockMvc.perform(get("/audits")
+                        .param("to", Instant.now().minusSeconds(3600).toString())
+                        .with(httpBasic("admin", "admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test

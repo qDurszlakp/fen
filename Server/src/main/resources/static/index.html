@@ -66,6 +66,22 @@
             margin: 1.5rem 0 .5rem;
         }
 
+        /* native disclosure widget: the arrow and the toggling come for free */
+        .group > summary {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--muted);
+            margin: 1.5rem 0 .5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .group > summary:hover { color: var(--text); }
+
+        /* the last endpoint in a group would otherwise touch the next summary */
+        .group[open] { margin-bottom: 1rem; }
+
         .ep {
             display: flex;
             align-items: center;
@@ -166,7 +182,8 @@
         <span class="auth-state" id="authState">no credentials</span>
     </div>
 
-    <h2>RestApi &mdash; /rest</h2>
+    <details class="group">
+        <summary>RestApi &mdash; /rest</summary>
 
     <div class="ep">
         <span class="verb GET">GET</span>
@@ -204,7 +221,10 @@
         <button onclick="call('POST', '/rest/file/' + encodeURIComponent(v('fileContent')))">Send</button>
     </div>
 
-    <h2>BankingApi &mdash; accounts, cards, countries</h2>
+    </details>
+
+    <details class="group">
+        <summary>BankingApi &mdash; accounts, cards, countries</summary>
 
     <div class="ep">
         <span class="verb GET">GET</span>
@@ -237,7 +257,10 @@
         <button onclick="call('POST', '/countries', {name: v('cName'), code: v('cCode')})">Send</button>
     </div>
 
-    <h2>OrderApi &mdash; orders</h2>
+    </details>
+
+    <details class="group">
+        <summary>OrderApi &mdash; orders</summary>
 
     <div class="ep">
         <span class="verb POST">POST</span>
@@ -287,6 +310,26 @@
         </div>
         <button style="margin-top:.6rem" onclick="filterOrders()">Send</button>
     </div>
+
+    </details>
+
+    <details class="group">
+        <summary>AuditApi &mdash; audits</summary>
+
+    <div class="panel">
+        <div class="desc" style="margin-bottom:.6rem">
+            <b>GET /audits</b> &mdash; newest first. Timestamps are ISO-8601 with an offset.
+        </div>
+        <div class="filters">
+            <input id="auUser" placeholder="userUuid">
+            <input id="auUrl" placeholder="url">
+            <input id="auFrom" placeholder="from (2026-08-08T00:00:00Z)">
+            <input id="auTo" placeholder="to (2026-08-09T00:00:00Z)">
+        </div>
+        <button style="margin-top:.6rem" onclick="listAudits()">Send</button>
+    </div>
+
+    </details>
 
     <h2>Response</h2>
     <div class="out" id="out">Hit "Send" on any endpoint.</div>
@@ -351,6 +394,22 @@
         minTotal: 'fMinTotal', maxTotal: 'fMaxTotal',
         createdFrom: 'fCreatedFrom', createdTo: 'fCreatedTo'
     };
+
+    const AUDIT_FILTERS = {userUuid: 'auUser', url: 'auUrl', from: 'auFrom', to: 'auTo'};
+
+    function listAudits() {
+        call('GET', '/audits' + queryString(AUDIT_FILTERS));
+    }
+
+    function queryString(fields) {
+        const params = new URLSearchParams();
+        for (const [param, id] of Object.entries(fields)) {
+            const value = v(id).trim();
+            if (value) params.append(param, value);
+        }
+        const qs = params.toString();
+        return qs ? '?' + qs : '';
+    }
 
     function filterOrders() {
         const params = new URLSearchParams();
