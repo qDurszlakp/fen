@@ -8,10 +8,11 @@ import com.sandbox.server.banking.repository.AccountJpaRepository;
 import com.sandbox.server.banking.repository.CardJpaRepository;
 import com.sandbox.server.banking.repository.CountryJpaRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -23,25 +24,19 @@ public class BankingService {
     private final CardJpaRepository accountCardJpaRepository;
     private final CountryJpaRepository countryJpaRepository;
 
-    public List<AccountDto> getAccounts() {
-        return accountJpaRepository.findAll()
-                .stream().map(mapper::accountToAccountDto)
-                .toList();
+    public Page<AccountDto> getAccounts(Pageable pageable) {
+        return accountJpaRepository.findAll(pageable)
+                .map(mapper::accountToAccountDto);
     }
 
-    public List<CardDto> getCards() {
-        return accountCardJpaRepository.findAll()
-                .stream().map(mapper::cardToCardDto)
-                .toList();
-    }
-
-    public List<CountryDto> getCountries() {
-        return null;
+    public Page<CardDto> getCards(Pageable pageable) {
+        return accountCardJpaRepository.findAll(pageable)
+                .map(mapper::cardToCardDto);
     }
 
     public CountryDto createCountry(CreateCountryDto countryDto) {
         Country entryCountry = mapper.countryDtoToCountry(countryDto);
-        entryCountry.setInsertTime(ZonedDateTime.now(ZoneId.of("Europe/Warsaw")));
+        entryCountry.setInsertTime(Instant.now());
         Country savedEntity = countryJpaRepository.save(entryCountry);
         return mapper.countryToCountryDto(savedEntity);
     }

@@ -229,8 +229,10 @@
     <div class="ep">
         <span class="verb GET">GET</span>
         <code class="path">/accounts</code>
-        <span class="desc">Account list</span>
-        <button onclick="call('GET', '/accounts')">Send</button>
+        <span class="desc">Account list (paged)</span>
+        <input id="accPage" placeholder="page" value="0">
+        <input id="accSize" placeholder="size" value="20">
+        <button onclick="call('GET', '/accounts' + paging('accPage', 'accSize'))">Send</button>
     </div>
 
     <div class="ep">
@@ -244,8 +246,10 @@
     <div class="ep">
         <span class="verb GET">GET</span>
         <code class="path">/cards</code>
-        <span class="desc">Card list</span>
-        <button onclick="call('GET', '/cards')">Send</button>
+        <span class="desc">Card list (paged)</span>
+        <input id="cardPage" placeholder="page" value="0">
+        <input id="cardSize" placeholder="size" value="20">
+        <button onclick="call('GET', '/cards' + paging('cardPage', 'cardSize'))">Send</button>
     </div>
 
     <div class="ep">
@@ -287,8 +291,10 @@
     <div class="ep">
         <span class="verb GET">GET</span>
         <code class="path">/orders</code>
-        <span class="desc">All orders</span>
-        <button onclick="call('GET', '/orders')">Send</button>
+        <span class="desc">All orders (paged)</span>
+        <input id="ordPage" placeholder="page" value="0">
+        <input id="ordSize" placeholder="size" value="20">
+        <button onclick="call('GET', '/orders' + paging('ordPage', 'ordSize'))">Send</button>
     </div>
 
     <div class="panel">
@@ -307,6 +313,8 @@
             <input id="fMaxTotal" placeholder="maxTotal">
             <input id="fCreatedFrom" placeholder="createdFrom (2026-01-01T00:00:00Z)">
             <input id="fCreatedTo" placeholder="createdTo">
+            <input id="fPage" placeholder="page" value="0">
+            <input id="fSize" placeholder="size" value="20">
         </div>
         <button style="margin-top:.6rem" onclick="filterOrders()">Send</button>
     </div>
@@ -394,13 +402,19 @@
         customer: 'fCustomer', status: 'fStatus', currency: 'fCurrency', channel: 'fChannel',
         city: 'fCity', country: 'fCountry', sku: 'fSku',
         minTotal: 'fMinTotal', maxTotal: 'fMaxTotal',
-        createdFrom: 'fCreatedFrom', createdTo: 'fCreatedTo'
+        createdFrom: 'fCreatedFrom', createdTo: 'fCreatedTo',
+        page: 'fPage', size: 'fSize'
     };
 
     const AUDIT_FILTERS = {userUuid: 'auUser', url: 'auUrl', from: 'auFrom', to: 'auTo', page: 'auPage', size: 'auSize'};
 
     function listAudits() {
         call('GET', '/audits' + queryString(AUDIT_FILTERS));
+    }
+
+    // page/size pair for endpoints without a full filter panel
+    function paging(pageId, sizeId) {
+        return queryString({page: pageId, size: sizeId});
     }
 
     function queryString(fields) {

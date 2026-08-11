@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{url}}/cards
+  url: {{url}}/cards?page=0&size=20
   body: none
   auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 20
 }
 
 settings {

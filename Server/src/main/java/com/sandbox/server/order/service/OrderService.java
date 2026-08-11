@@ -4,6 +4,9 @@ import com.sandbox.server.order.document.Order;
 import com.sandbox.server.order.dto.OrderFilter;
 import com.sandbox.server.order.repository.OrderMongoRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -58,7 +61,7 @@ public class OrderService {
         ));
     }
 
-    public List<Order> find(OrderFilter filter) {
+    public Page<Order> find(OrderFilter filter, Pageable pageable) {
         List<Criteria> criteria = new ArrayList<>();
 
         add(criteria, filter.customer(), value -> Criteria.where("customer").is(value));
@@ -77,7 +80,10 @@ public class OrderService {
                 ? new Query()
                 : new Query(new Criteria().andOperator(criteria));
 
-        return mongoTemplate.find(query, Order.class);
+        long total = mongoTemplate.count(query, Order.class);
+        List<Order> page = mongoTemplate.find(query.with(pageable), Order.class);
+
+        return new PageImpl<>(page, pageable, total);
     }
 
     private static <T> void add(List<Criteria> target, T value, Function<T, Criteria> asCriteria) {

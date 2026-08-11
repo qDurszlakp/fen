@@ -4,6 +4,10 @@ import com.sandbox.server.order.document.Order;
 import com.sandbox.server.order.dto.OrderFilter;
 import com.sandbox.server.order.service.OrderService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +32,10 @@ public class OrderApi {
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> orders(OrderFilter filter) {
-        return ResponseEntity.ok(orderService.find(filter));
+    public ResponseEntity<PagedModel<Order>> orders(
+            OrderFilter filter,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(new PagedModel<>(orderService.find(filter, pageable)));
     }
 }

@@ -3,7 +3,9 @@ package com.sandbox.server.order;
 import com.jayway.jsonpath.JsonPath;
 import com.sandbox.MongoInfra;
 import com.sandbox.BasicInfrastructure;
+import com.sandbox.server.order.repository.OrderMongoRepository;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.context.ImportTestcontainers;
@@ -26,6 +28,14 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private OrderMongoRepository orderRepository;
+
+    @BeforeEach
+    void clean() {
+        orderRepository.deleteAll();
+    }
 
     private static final String NEW_ORDER = """
             {
@@ -86,8 +96,8 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].customer").value("anna"));
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].customer").value("anna"));
     }
 
     @Test
@@ -99,6 +109,26 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
         // then
         result.andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("no order")));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldPageTheListing() {
+        // given
+        createOrder();
+        createOrder();
+        createOrder();
+
+        // when - one order per page
+        mockMvc.perform(get("/orders")
+                        .param("size", "1")
+                        .param("page", "1")
+                        .with(httpBasic("admin", "admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalPages").value(3))
+                .andExpect(jsonPath("$.page.number").value(1));
     }
 
     @Test
@@ -115,7 +145,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.page.totalElements").value(0));
     }
 
     @Test
@@ -132,7 +162,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
         // then
         result.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].address.city").value("Gdansk"));
+                .andExpect(jsonPath("$.content[0].address.city").value("Gdansk"));
     }
 
     @Test
@@ -194,7 +224,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        List<String> cities = JsonPath.read(all, "$[?(@.id == '" + id + "')].address.city");
+        List<String> cities = JsonPath.read(all, "$.content[?(@.id == '" + id + "')].address.city");
         return cities.getFirst();
     }
 

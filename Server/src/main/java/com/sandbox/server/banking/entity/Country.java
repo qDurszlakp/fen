@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -26,7 +26,7 @@ public class Country {
     private String code;
 
     @Column(name = "INS_TIME")
-    private ZonedDateTime insertTime;
+    private Instant insertTime;
 
     @Version
     @Column(name = "VERSION")

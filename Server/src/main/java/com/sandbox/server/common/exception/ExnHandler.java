@@ -1,6 +1,5 @@
 package com.sandbox.server.common.exception;
 
-import com.sandbox.server.common.exception.BasicException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -21,22 +20,22 @@ import java.util.NoSuchElementException;
 public class ExnHandler {
 
     @ExceptionHandler(BasicException.class)
-    private ResponseEntity<String> genericError(BasicException e) {
+    private ResponseEntity<Map<String, Object>> genericError(BasicException e) {
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", Instant.now());
         body.put("message", "Generic Error");
 
         log.error("Undefined error: {}", e.getMessage(), e);
 
-        return new ResponseEntity<>("Generic Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     private ResponseEntity<Map<String, Object>> notFound(NoSuchElementException e) {
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", Instant.now());
         body.put("message", e.getMessage());
 
         log.warn("Not found: {}", e.getMessage());
@@ -48,7 +47,7 @@ public class ExnHandler {
     private ResponseEntity<Map<String, Object>> conflict(OptimisticLockingFailureException e) {
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", Instant.now());
         body.put("message", "Conflict - the document was modified by someone else, re-read it and retry");
 
         log.warn("Optimistic locking conflict: {}", e.getMessage());
@@ -110,7 +109,7 @@ public class ExnHandler {
     private Map<String, Object> validationBody(Map<String, String> errors) {
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", Instant.now());
         body.put("message", "Validation Error");
         body.put("errors", errors);
 

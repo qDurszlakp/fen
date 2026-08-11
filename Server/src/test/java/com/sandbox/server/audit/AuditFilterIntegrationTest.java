@@ -82,7 +82,7 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .param("to", Instant.now().plusSeconds(60).toString())
                         .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
                 .andExpect(jsonPath("$.content.length()").value(3))
                 .andExpect(jsonPath("$.content[0].userUuid").value(admin.getId().toString()))
                 .andExpect(jsonPath("$.content[0].actionTime").isNotEmpty());
@@ -103,9 +103,9 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.totalElements").value(4))
-                .andExpect(jsonPath("$.totalPages").value(4))
-                .andExpect(jsonPath("$.number").value(0));
+                .andExpect(jsonPath("$.page.totalElements").value(4))
+                .andExpect(jsonPath("$.page.totalPages").value(4))
+                .andExpect(jsonPath("$.page.number").value(0));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .param("to", Instant.now().minusSeconds(3600).toString())
                         .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.page.totalElements").value(0))
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
 

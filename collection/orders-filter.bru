@@ -5,12 +5,14 @@ meta {
 }
 
 get {
-  url: {{url}}/orders?customer=anna&status=PAID&currency=PLN&channel=WEB&city=Gdansk&country=PL&sku=B-2&minTotal=300&maxTotal=400
+  url: {{url}}/orders?page=0&size=20&customer=anna&status=PAID&currency=PLN&channel=WEB&city=Gdansk&country=PL&sku=B-2&minTotal=300&maxTotal=400
   body: none
   auth: inherit
 }
 
 params:query {
+  page: 0
+  size: 20
   customer: anna
   status: PAID
   currency: PLN
