@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class BankingService {
     private final AccountJpaRepository accountJpaRepository;
     private final CardJpaRepository accountCardJpaRepository;
     private final CountryJpaRepository countryJpaRepository;
+    private final Clock clock;
 
     public Page<AccountDto> getAccounts(Pageable pageable) {
         return accountJpaRepository.findAll(pageable)
@@ -36,7 +38,7 @@ public class BankingService {
 
     public CountryDto createCountry(CreateCountryDto countryDto) {
         Country entryCountry = mapper.countryDtoToCountry(countryDto);
-        entryCountry.setInsertTime(Instant.now());
+        entryCountry.setInsertTime(Instant.now(clock));
         Country savedEntity = countryJpaRepository.save(entryCountry);
         return mapper.countryToCountryDto(savedEntity);
     }

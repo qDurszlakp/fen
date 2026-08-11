@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class OrderService {
 
     private final OrderMongoRepository repository;
     private final MongoTemplate mongoTemplate;
+    private final Clock clock;
 
     public Order create(Order order) {
         return repository.save(new Order(
@@ -38,7 +40,7 @@ public class OrderService {
                 order.address(),
                 order.items(),
                 total(order),
-                Instant.now()
+                Instant.now(clock)
         ));
     }
 

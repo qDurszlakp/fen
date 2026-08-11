@@ -16,6 +16,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,7 @@ public class AuditFilter extends OncePerRequestFilter {
     private static final String PATTERN_SPLITTER = ",";
 
     private final AuditJpaRepository auditRepository;
+    private final Clock clock;
 
     @Value("${audit.patterns}")
     private String auditPatterns;
@@ -60,7 +62,7 @@ public class AuditFilter extends OncePerRequestFilter {
         Audit auditEntity = new Audit();
         auditEntity.setUrl(request.getRequestURI());
         auditEntity.setUserUuid(user.getId());
-        auditEntity.setActionTime(Instant.now());
+        auditEntity.setActionTime(Instant.now(clock));
         return auditEntity;
     }
 }

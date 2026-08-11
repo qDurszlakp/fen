@@ -1,5 +1,6 @@
 package com.sandbox.server.security;
 
+import com.sandbox.server.audit.service.AuditService;
 import com.sandbox.server.common.ratelimit.LoginRateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 public class SecurityConfig {
 
     private final AppUserDetailsService appUserDetailsService;
+    private final AuditService auditService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,13 +54,11 @@ public class SecurityConfig {
                 .build();
     }
 
-    /**
-     * Returns 401 without the WWW-Authenticate header, so browsers never pop up
-     * their native credentials dialog and clients handle the status themselves.
-     */
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
+            auditService.recordRejected(request.getRequestURI());
+
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Unauthorized\"}");

@@ -12,8 +12,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -21,9 +24,21 @@ import java.util.function.Function;
 public class AuditService {
 
     private static final String ACTION_TIME = "actionTime";
+    public static final UUID ANONYMOUS = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final AuditJpaRepository auditRepository;
     private final AuditMapper auditMapper;
+    private final Clock clock;
+
+    @Transactional
+    public void recordRejected(String url) {
+        Audit audit = new Audit();
+        audit.setUrl(url);
+        audit.setUserUuid(ANONYMOUS);
+        audit.setActionTime(Instant.now(clock));
+
+        auditRepository.save(audit);
+    }
 
     @Transactional(readOnly = true)
     public Page<AuditDto> find(AuditQuery query, Pageable pageable) {
