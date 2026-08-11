@@ -3,12 +3,14 @@ package com.sandbox.server.order;
 import com.jayway.jsonpath.JsonPath;
 import com.sandbox.MongoInfra;
 import com.sandbox.BasicInfrastructure;
+import com.sandbox.FixedClock;
 import com.sandbox.server.order.repository.OrderMongoRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.context.ImportTestcontainers;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -24,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ImportTestcontainers(MongoInfra.class)
+@Import(FixedClock.class)
 public class OrderApiIntegrationTest extends BasicInfrastructure {
 
     @Autowired
@@ -72,7 +75,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
                 .andExpect(jsonPath("$.address.country").value("PL"))
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.total").value(380.00))
-                .andExpect(jsonPath("$.createdAt").isNotEmpty());
+                .andExpect(jsonPath("$.createdAt").value(FixedClock.NOW.toString()));
     }
 
     @Test
