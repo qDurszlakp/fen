@@ -4,6 +4,9 @@
 set -e
 
 export PODMAN_COMPOSE_WARNING_LOGS=false
+
+export MAVEN_OPTS="--sun-misc-unsafe-memory-access=allow"
+
 # Treat pipe errors
 set -o pipefail
 
