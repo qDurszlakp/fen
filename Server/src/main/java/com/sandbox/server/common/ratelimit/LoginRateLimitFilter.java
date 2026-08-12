@@ -16,12 +16,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Guards {@code POST /auth/login} specifically - under Basic Auth every
- * request carried credentials to check, so this used to key off the
- * {@code Authorization} header; under JWT the only endpoint that ever checks
- * a password is the login endpoint itself.
- */
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/auth/login";
