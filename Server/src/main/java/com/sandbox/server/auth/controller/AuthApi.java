@@ -1,6 +1,6 @@
 package com.sandbox.server.auth.controller;
 
-import com.sandbox.server.audit.service.AuditService;
+import com.sandbox.server.audit.event.AuditEvent;
 import com.sandbox.server.auth.dto.LoginRequest;
 import com.sandbox.server.auth.dto.RefreshRequest;
 import com.sandbox.server.auth.dto.TokenPairResponse;
@@ -9,6 +9,7 @@ import com.sandbox.server.auth.service.RefreshTokenService;
 import com.sandbox.server.security.AppUser;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,7 +28,7 @@ public class AuthApi {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-    private final AuditService auditService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PostMapping("/login")
     public ResponseEntity<TokenPairResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -35,7 +36,7 @@ public class AuthApi {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
         AppUser user = (AppUser) authentication.getPrincipal();
-        auditService.record("/auth/login", user.getId(), HttpStatus.OK.value());
+        eventPublisher.publishEvent(new AuditEvent("/auth/login", user.getId(), HttpStatus.OK.value()));
 
         return ResponseEntity.ok(tokenPair(user));
     }

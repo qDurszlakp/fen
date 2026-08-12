@@ -1,5 +1,7 @@
 package com.sandbox.server.auth.service;
 
+import com.sandbox.server.audit.event.AuditEvent;
+import com.sandbox.server.audit.service.AuditService;
 import com.sandbox.server.auth.entity.RefreshToken;
 import com.sandbox.server.auth.exception.InvalidRefreshTokenException;
 import com.sandbox.server.auth.repository.RefreshTokenRepository;
@@ -7,6 +9,8 @@ import com.sandbox.server.security.AppUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,6 +34,7 @@ public class RefreshTokenService {
 
     private final Clock clock;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${app.security.jwt.refresh-token-ttl:P7D}")
@@ -65,14 +71,21 @@ public class RefreshTokenService {
 
         existing.setRevoked(true);
         String nextToken = issue(existing.getUser());
+        eventPublisher.publishEvent(new AuditEvent("/auth/refresh", existing.getUser().getId(), HttpStatus.OK.value()));
 
         return new Rotated(existing.getUser(), nextToken);
     }
 
     @Transactional
     public void revoke(String rawToken) {
-        refreshTokenRepository.findByTokenHash(hash(rawToken))
-                .ifPresent(token -> token.setRevoked(true));
+        UUID userId = refreshTokenRepository.findByTokenHash(hash(rawToken))
+                .map(token -> {
+                    token.setRevoked(true);
+                    return token.getUser().getId();
+                })
+                .orElse(AuditService.ANONYMOUS);
+
+        eventPublisher.publishEvent(new AuditEvent("/auth/logout", userId, HttpStatus.NO_CONTENT.value()));
     }
 
     private String randomToken() {

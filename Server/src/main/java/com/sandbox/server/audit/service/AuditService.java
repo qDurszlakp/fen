@@ -31,9 +31,9 @@ public class AuditService {
     private static final String PATTERN_SPLITTER = ",";
     public static final UUID ANONYMOUS = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
-    private final AuditJpaRepository auditRepository;
-    private final AuditMapper auditMapper;
     private final Clock clock;
+    private final AuditMapper auditMapper;
+    private final AuditJpaRepository auditRepository;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Value("${audit.patterns}")

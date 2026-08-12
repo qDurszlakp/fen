@@ -1,11 +1,13 @@
 package com.sandbox.server.common.exception;
 
+import com.sandbox.server.audit.event.AuditEvent;
 import com.sandbox.server.audit.service.AuditService;
 import com.sandbox.server.auth.exception.InvalidRefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +28,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class ExnHandler {
 
-    private final AuditService auditService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @ExceptionHandler(BasicException.class)
     private ResponseEntity<Map<String, Object>> genericError(BasicException e) {
@@ -60,7 +62,7 @@ public class ExnHandler {
         body.put("message", "Invalid credentials");
 
         log.warn("Login failed: {}", e.getMessage());
-        auditService.recordRejected(request.getRequestURI());
+        eventPublisher.publishEvent(new AuditEvent(request.getRequestURI(), AuditService.ANONYMOUS, HttpStatus.UNAUTHORIZED.value()));
 
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
@@ -78,13 +80,14 @@ public class ExnHandler {
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
-    private ResponseEntity<Map<String, Object>> invalidRefreshToken(InvalidRefreshTokenException e) {
+    private ResponseEntity<Map<String, Object>> invalidRefreshToken(InvalidRefreshTokenException e, HttpServletRequest request) {
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now());
         body.put("message", "Invalid refresh token");
 
         log.warn("Refresh token rejected: {}", e.getMessage());
+        eventPublisher.publishEvent(new AuditEvent(request.getRequestURI(), AuditService.ANONYMOUS, HttpStatus.UNAUTHORIZED.value()));
 
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
@@ -105,7 +108,7 @@ public class ExnHandler {
      * Thrown when a {@code @Valid @RequestBody} fails validation.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    private ResponseEntity<Map<String, Object>> validationError(MethodArgumentNotValidException e) {
+    private ResponseEntity<Map<String, Object>> validationError(MethodArgumentNotValidException e, HttpServletRequest request) {
 
         Map<String, String> errors = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
@@ -114,6 +117,7 @@ public class ExnHandler {
                 .forEach(error -> errors.put(error.getObjectName(), error.getDefaultMessage()));
 
         log.warn("Request body validation failed: {}", errors);
+        eventPublisher.publishEvent(new AuditEvent(request.getRequestURI(), AuditService.ANONYMOUS, HttpStatus.BAD_REQUEST.value()));
 
         return new ResponseEntity<>(validationBody(errors), HttpStatus.BAD_REQUEST);
     }
