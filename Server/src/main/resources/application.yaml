@@ -32,6 +32,22 @@ spring:
         version: 0.0.1
         protocol: STATELESS
 
+app:
+  security:
+    jwt:
+      private-key: "classpath:certs/app.key"
+      public-key: "classpath:certs/app.pub"
+      issuer: "fen-server"
+      access-token-ttl: "PT60M"
+      refresh-token-ttl: "P7D"
+    seed:
+      admin:
+        username: admin
+        password: admin
+      user:
+        username: user
+        password: user
+
 files:
   baseDir: "/app/data/Data.txt"
 

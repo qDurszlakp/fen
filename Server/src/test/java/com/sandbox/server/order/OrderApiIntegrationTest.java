@@ -17,9 +17,9 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
+import static com.sandbox.AuthTestSupport.bearerAuth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -60,7 +60,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
     void shouldCreateOrderWithEmbeddedItemsAndComputeTotal() {
         // when
         ResultActions result = mockMvc.perform(post("/orders")
-                .with(httpBasic("admin", "admin"))
+                .with(bearerAuth(mockMvc))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(NEW_ORDER));
 
@@ -95,7 +95,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
                 .param("sku", "B-2")
                 .param("minTotal", "300")
                 .param("maxTotal", "400")
-                .with(httpBasic("admin", "admin")));
+                .with(bearerAuth(mockMvc)));
 
         // then
         result.andExpect(status().isOk())
@@ -126,7 +126,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
         mockMvc.perform(get("/orders")
                         .param("size", "1")
                         .param("page", "1")
-                        .with(httpBasic("admin", "admin")))
+                        .with(bearerAuth(mockMvc)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.page.totalElements").value(3))
@@ -144,7 +144,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
         ResultActions result = mockMvc.perform(get("/orders")
                 .param("city", "Gdansk")
                 .param("minTotal", "1000")
-                .with(httpBasic("admin", "admin")));
+                .with(bearerAuth(mockMvc)));
 
         // then
         result.andExpect(status().isOk())
@@ -160,7 +160,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
         // when
         ResultActions result = mockMvc.perform(get("/orders")
                 .param("city", "Gdansk")
-                .with(httpBasic("admin", "admin")));
+                .with(bearerAuth(mockMvc)));
 
         // then
         result.andExpect(status().isOk())
@@ -208,7 +208,7 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
 
     private String createOrder() throws Exception {
         return mockMvc.perform(post("/orders")
-                        .with(httpBasic("admin", "admin"))
+                        .with(bearerAuth(mockMvc))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(NEW_ORDER))
                 .andExpect(status().isCreated())
@@ -217,13 +217,13 @@ public class OrderApiIntegrationTest extends BasicInfrastructure {
 
     private ResultActions updateOrder(String id, String payload) throws Exception {
         return mockMvc.perform(put("/orders/" + id)
-                .with(httpBasic("admin", "admin"))
+                .with(bearerAuth(mockMvc))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload));
     }
 
     private String cityOf(String id) throws Exception {
-        String all = mockMvc.perform(get("/orders").with(httpBasic("admin", "admin")))
+        String all = mockMvc.perform(get("/orders").with(bearerAuth(mockMvc)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

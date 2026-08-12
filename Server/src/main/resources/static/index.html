@@ -172,14 +172,15 @@
 <body>
 <div class="wrap">
     <h1>Server API Console</h1>
-    <p class="sub">All endpoints of the Server module. Authentication: HTTP Basic.</p>
+    <p class="sub">All endpoints of the Server module. Authentication: JWT (Bearer).</p>
 
     <div class="panel auth">
-        <input id="user" placeholder="username" autocomplete="username">
-        <input id="pass" type="password" placeholder="password" autocomplete="current-password">
-        <button onclick="saveAuth()">Set</button>
-        <button onclick="clearAuth()">Clear</button>
-        <span class="auth-state" id="authState">no credentials</span>
+        <input id="user" placeholder="username" autocomplete="username" value="admin">
+        <input id="pass" type="password" placeholder="password" autocomplete="current-password" value="admin">
+        <button onclick="login()">Login</button>
+        <button onclick="refresh()">Refresh</button>
+        <button onclick="logout()">Logout</button>
+        <span class="auth-state" id="authState">not logged in</span>
     </div>
 
     <details class="group">
@@ -353,20 +354,62 @@
 </div>
 
 <script>
-    let auth = null;
+    let accessToken = null;
+    let refreshToken = null;
 
     const v = id => document.getElementById(id).value;
     const out = document.getElementById('out');
     const authState = document.getElementById('authState');
 
-    function saveAuth() {
-        auth = 'Basic ' + btoa(v('user') + ':' + v('pass'));
-        authState.textContent = 'Authorization: ' + auth;
+    async function login() {
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: v('user'), password: v('pass')})
+        });
+        if (!res.ok) {
+            authState.textContent = 'login failed (' + res.status + ')';
+            return;
+        }
+        setTokens(await res.json());
     }
 
-    function clearAuth() {
-        auth = null;
-        authState.textContent = 'no credentials';
+    async function refresh() {
+        if (!refreshToken) {
+            authState.textContent = 'not logged in';
+            return;
+        }
+        const res = await fetch('/auth/refresh', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({refreshToken: refreshToken})
+        });
+        if (!res.ok) {
+            authState.textContent = 'refresh failed (' + res.status + ') - login again';
+            accessToken = null;
+            refreshToken = null;
+            return;
+        }
+        setTokens(await res.json());
+    }
+
+    async function logout() {
+        if (refreshToken) {
+            await fetch('/auth/logout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({refreshToken: refreshToken})
+            });
+        }
+        accessToken = null;
+        refreshToken = null;
+        authState.textContent = 'not logged in';
+    }
+
+    function setTokens(tokenPair) {
+        accessToken = tokenPair.accessToken;
+        refreshToken = tokenPair.refreshToken;
+        authState.textContent = 'logged in, access token expires in ' + tokenPair.expiresIn + 's';
     }
 
     const ITEMS = [
@@ -444,7 +487,7 @@
 
     async function call(method, path, body) {
         const headers = {};
-        if (auth) headers['Authorization'] = auth;
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
         if (body) headers['Content-Type'] = 'application/json';
 
         out.textContent = method + ' ' + path + ' ...';

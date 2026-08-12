@@ -1,0 +1,35 @@
+meta {
+  name: /auth/refresh
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/auth/refresh
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("accessToken", res.body.accessToken);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
+  }
+}
+
+docs {
+  Rotates the refresh token: the one in refreshToken stops working the moment
+  this call succeeds, replaced by the one in the response. Run this once the
+  access token has expired (5 minutes) instead of logging in again.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,10 +1,13 @@
 package com.sandbox.server.common.exception;
 
+import com.sandbox.server.auth.exception.InvalidRefreshTokenException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +44,42 @@ public class ExnHandler {
         log.warn("Not found: {}", e.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    private ResponseEntity<Map<String, Object>> badCredentials(AuthenticationException e) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("message", "Invalid credentials");
+
+        log.warn("Login failed: {}", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    private ResponseEntity<Map<String, Object>> accessDenied(AccessDeniedException e) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("message", "Access denied");
+
+        log.warn("Access denied: {}", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    private ResponseEntity<Map<String, Object>> invalidRefreshToken(InvalidRefreshTokenException e) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("message", "Invalid refresh token");
+
+        log.warn("Refresh token rejected: {}", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)

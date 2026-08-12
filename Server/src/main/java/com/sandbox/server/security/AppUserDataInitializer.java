@@ -6,7 +6,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-
 @Component
 @RequiredArgsConstructor
 public class AppUserDataInitializer implements CommandLineRunner {
@@ -14,19 +13,30 @@ public class AppUserDataInitializer implements CommandLineRunner {
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.security.seed.username:admin}")
-    private String seedUsername;
+    @Value("${app.security.seed.admin.username:admin}")
+    private String adminUsername;
 
-    @Value("${app.security.seed.password:admin}")
-    private String seedPassword;
+    @Value("${app.security.seed.admin.password:admin}")
+    private String adminPassword;
+
+    @Value("${app.security.seed.user.username:user}")
+    private String userUsername;
+
+    @Value("${app.security.seed.user.password:user}")
+    private String userPassword;
 
     @Override
     public void run(String... args) {
-        if (appUserRepository.findByUsername(seedUsername).isEmpty()) {
+        seed(adminUsername, adminPassword, AppUserRole.ROLE_ADMIN);
+        seed(userUsername, userPassword, AppUserRole.ROLE_USER);
+    }
+
+    private void seed(String username, String password, AppUserRole role) {
+        if (appUserRepository.findByUsername(username).isEmpty()) {
             AppUser user = new AppUser();
-            user.setUsername(seedUsername);
-            user.setPassword(passwordEncoder.encode(seedPassword));
-            user.setRole(AppUserRole.ROLE_ADMIN);
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setRole(role);
             appUserRepository.save(user);
         }
     }

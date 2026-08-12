@@ -2,7 +2,6 @@ package com.sandbox.server.audit.filter;
 
 import com.sandbox.server.audit.entity.Audit;
 import com.sandbox.server.audit.repository.AuditJpaRepository;
-import com.sandbox.server.security.AppUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -38,17 +39,17 @@ public class AuditFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         if (shouldAudit(request.getRequestURI())) {
-            currentUser().ifPresent(user -> auditRepository.save(createAudit(request, user)));
+            currentUserId().ifPresent(userId -> auditRepository.save(createAudit(request, userId)));
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private Optional<AppUser> currentUser() {
+    private Optional<UUID> currentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return authentication != null && authentication.getPrincipal() instanceof AppUser user
-                ? Optional.of(user)
+        return authentication instanceof JwtAuthenticationToken jwtAuth
+                ? Optional.of(UUID.fromString(jwtAuth.getToken().getClaimAsString("uuid")))
                 : Optional.empty();
     }
 
@@ -58,10 +59,10 @@ public class AuditFilter extends OncePerRequestFilter {
         return patternList.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
     }
 
-    Audit createAudit(HttpServletRequest request, AppUser user) {
+    Audit createAudit(HttpServletRequest request, UUID userId) {
         Audit auditEntity = new Audit();
         auditEntity.setUrl(request.getRequestURI());
-        auditEntity.setUserUuid(user.getId());
+        auditEntity.setUserUuid(userId);
         auditEntity.setActionTime(Instant.now(clock));
         return auditEntity;
     }

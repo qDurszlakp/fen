@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,8 +16,15 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Guards {@code POST /auth/login} specifically - under Basic Auth every
+ * request carried credentials to check, so this used to key off the
+ * {@code Authorization} header; under JWT the only endpoint that ever checks
+ * a password is the login endpoint itself.
+ */
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
+    private static final String LOGIN_PATH = "/auth/login";
     private static final int MAX_ATTEMPTS = 5;
     private static final Duration WINDOW = Duration.ofMinutes(1);
 
@@ -26,8 +34,7 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Basic ")) {
+        if (!HttpMethod.POST.matches(request.getMethod()) || !LOGIN_PATH.equals(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }

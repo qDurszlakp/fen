@@ -1,0 +1,35 @@
+meta {
+  name: /auth/logout
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{url}}/auth/logout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 204) {
+    bru.setEnvVar("accessToken", "");
+    bru.setEnvVar("refreshToken", "");
+  }
+}
+
+docs {
+  Revokes the refresh token server-side. The still-valid access token keeps
+  working until it expires (5 minutes) - logout only stops the session from
+  being renewed, it does not invalidate an access token already issued.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

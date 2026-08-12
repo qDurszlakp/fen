@@ -1,0 +1,36 @@
+meta {
+  name: /auth/login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "user",
+    "password": "user"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("accessToken", res.body.accessToken);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  Run this first. Stores accessToken/refreshToken as environment variables,
+  which every other request in this collection reads via auth:bearer at the
+  collection level.
+}

@@ -1,18 +1,18 @@
 meta {
-  name: /rest/posts
+  name: /orders
   type: http
-  seq: 4
+  seq: 1
 }
 
 get {
-  url: {{url}}/rest/posts
+  url: {{url}}/orders?page=0&size=20
   body: none
   auth: inherit
 }
 
-headers {
-  ~X-Debug: 1
-  ~Cookie: debug=1
+params:query {
+  page: 0
+  size: 20
 }
 
 settings {

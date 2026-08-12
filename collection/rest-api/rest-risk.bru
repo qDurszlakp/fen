@@ -1,18 +1,13 @@
 meta {
-  name: /cards
+  name: /rest/risk
   type: http
-  seq: 8
+  seq: 5
 }
 
 get {
-  url: {{url}}/cards?page=0&size=20
+  url: {{url}}/rest/risk
   body: none
   auth: inherit
-}
-
-params:query {
-  page: 0
-  size: 20
 }
 
 settings {

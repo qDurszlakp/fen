@@ -1,18 +1,18 @@
 meta {
-  name: /accounts
+  name: /rest/posts
   type: http
-  seq: 7
+  seq: 3
 }
 
 get {
-  url: {{url}}/accounts?page=0&size=20
+  url: {{url}}/rest/posts
   body: none
   auth: inherit
 }
 
-params:query {
-  page: 0
-  size: 20
+headers {
+  ~X-Debug: 1
+  ~Cookie: debug=1
 }
 
 settings {
