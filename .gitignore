@@ -87,3 +87,6 @@ override.tf.json
 # Ignore directory used by Terraform for dependencies
 .terraform/
 .terraform.lock.hcl
+
+### Session notes ###
+SESSION.md
