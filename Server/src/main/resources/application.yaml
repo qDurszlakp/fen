@@ -56,7 +56,7 @@ data:
   passphraseUrl: "http://foo:8090/secret"
 
 audit:
-  patterns: '/**'
+  patterns: '/rest/**,/accounts/**,/cards/**,/countries/**,/orders/**,/audits/**'
 
 
 logging:

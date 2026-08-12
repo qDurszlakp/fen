@@ -38,11 +38,11 @@ public class AuditFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        if (shouldAudit(request.getRequestURI())) {
-            currentUserId().ifPresent(userId -> auditRepository.save(createAudit(request, userId)));
-        }
-
         filterChain.doFilter(request, response);
+
+        if (shouldAudit(request.getRequestURI())) {
+            currentUserId().ifPresent(userId -> auditRepository.save(createAudit(request, response, userId)));
+        }
     }
 
     private Optional<UUID> currentUserId() {
@@ -59,11 +59,12 @@ public class AuditFilter extends OncePerRequestFilter {
         return patternList.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
     }
 
-    Audit createAudit(HttpServletRequest request, UUID userId) {
+    Audit createAudit(HttpServletRequest request, HttpServletResponse response, UUID userId) {
         Audit auditEntity = new Audit();
         auditEntity.setUrl(request.getRequestURI());
         auditEntity.setUserUuid(userId);
         auditEntity.setActionTime(Instant.now(clock));
+        auditEntity.setStatusCode(response.getStatus());
         return auditEntity;
     }
 }

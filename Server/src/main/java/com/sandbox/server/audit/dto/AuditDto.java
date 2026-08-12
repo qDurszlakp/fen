@@ -11,6 +11,8 @@ public record AuditDto(
 
         String url,
 
-        Instant actionTime
+        Instant actionTime,
+
+        Integer statusCode
 ) {
 }

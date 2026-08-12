@@ -57,6 +57,7 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
         assertThat(rows.getFirst().getUrl()).isEqualTo("/rest/cookies");
         assertThat(rows.getFirst().getUserUuid()).isEqualTo(admin.getId());
         assertThat(rows.getFirst().getActionTime()).isEqualTo(FixedClock.NOW);
+        assertThat(rows.getFirst().getStatusCode()).isEqualTo(200);
     }
 
     @Test
@@ -71,6 +72,7 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
         assertThat(rows).hasSize(1);
         assertThat(rows.getFirst().getUrl()).isEqualTo("/rest/cookies");
         assertThat(rows.getFirst().getUserUuid()).isEqualTo(AuditService.ANONYMOUS);
+        assertThat(rows.getFirst().getStatusCode()).isEqualTo(401);
     }
 
     @Test
@@ -105,8 +107,8 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .param("to", FixedClock.NOW.plusSeconds(60).toString())
                         .with(bearerAuth(mockMvc)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.page.totalElements").value(2))
+                .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].userUuid").value(admin.getId().toString()))
                 .andExpect(jsonPath("$.content[0].actionTime").isNotEmpty());
     }
@@ -126,8 +128,8 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
                         .with(bearerAuth(mockMvc)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.page.totalElements").value(4))
-                .andExpect(jsonPath("$.page.totalPages").value(4))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalPages").value(3))
                 .andExpect(jsonPath("$.page.number").value(0));
     }
 

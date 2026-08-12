@@ -26,4 +26,7 @@ public class Audit {
 
     @Column(name = "ACTION_TIME")
     private Instant actionTime;
+
+    @Column(name = "STATUS_CODE")
+    private Integer statusCode;
 }
