@@ -1,7 +1,10 @@
 package com.sandbox.server.common.exception;
 
+import com.sandbox.server.audit.service.AuditService;
 import com.sandbox.server.auth.exception.InvalidRefreshTokenException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -20,7 +23,10 @@ import java.util.NoSuchElementException;
 
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class ExnHandler {
+
+    private final AuditService auditService;
 
     @ExceptionHandler(BasicException.class)
     private ResponseEntity<Map<String, Object>> genericError(BasicException e) {
@@ -47,13 +53,14 @@ public class ExnHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    private ResponseEntity<Map<String, Object>> badCredentials(AuthenticationException e) {
+    private ResponseEntity<Map<String, Object>> badCredentials(AuthenticationException e, HttpServletRequest request) {
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now());
         body.put("message", "Invalid credentials");
 
         log.warn("Login failed: {}", e.getMessage());
+        auditService.recordRejected(request.getRequestURI());
 
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }

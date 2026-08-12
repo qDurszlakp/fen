@@ -14,21 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Replaces {@code SecurityMockMvcRequestPostProcessors.httpBasic(...)} now
- * that the application speaks Bearer tokens: logs in for real through
- * {@code POST /auth/login} so tests exercise the actual sign-and-verify
- * round trip, rather than injecting a fake {@code Authentication} straight
- * into the security context the way {@code jwt()} from spring-security-test
- * would.
- * <p>
- * One login per (MockMvc instance, username) pair is cached - a test class's
- * methods share the same {@link MockMvc}, and BCrypt is deliberately slow.
- * Keyed by identity on the outer map since {@code MockMvc} has no useful
- * {@code equals()}; two test classes never share an instance, so different
- * contexts never collide even though the RSA signing key is the same file
- * for all of them.
- */
 public final class AuthTestSupport {
 
     private static final Map<MockMvc, Map<String, String>> TOKEN_CACHE = new IdentityHashMap<>();

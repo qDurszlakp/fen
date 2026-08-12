@@ -37,7 +37,9 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
     private AppUserRepository appUserRepository;
 
     @BeforeEach
+    @SneakyThrows
     void clean() {
+        mockMvc.perform(get("/rest/cookies").with(bearerAuth(mockMvc)));
         auditRepository.deleteAll();
     }
 
@@ -63,8 +65,6 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
     @Test
     @SneakyThrows
     void shouldRecordACallRejectedForMissingCredentials() {
-        // when - no Authorization header at all; never reaches the audit
-        // filter, the entry point records it instead
         mockMvc.perform(get("/rest/cookies")).andExpect(status().isUnauthorized());
 
         // then
@@ -78,8 +78,6 @@ public class AuditFilterIntegrationTest extends BasicInfrastructure {
     @Test
     @SneakyThrows
     void shouldRecordACallRejectedForAnInvalidToken() {
-        // when - malformed token, so JwtDecoder never gets far enough to
-        // read a "uuid" claim; same 401 path as a missing header
         mockMvc.perform(get("/rest/cookies")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer not-a-real-jwt"))
                 .andExpect(status().isUnauthorized());

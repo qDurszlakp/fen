@@ -33,11 +33,16 @@ public class AuditService {
 
     @Transactional
     public void recordRejected(String url) {
+        record(url, ANONYMOUS, HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Transactional
+    public void record(String url, UUID userUuid, int statusCode) {
         Audit audit = new Audit();
         audit.setUrl(url);
-        audit.setUserUuid(ANONYMOUS);
+        audit.setUserUuid(userUuid);
         audit.setActionTime(Instant.now(clock));
-        audit.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+        audit.setStatusCode(statusCode);
 
         auditRepository.save(audit);
     }
