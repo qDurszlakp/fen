@@ -4,7 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.sandbox.MongoInfra;
 import com.sandbox.BasicInfrastructure;
 import com.sandbox.FixedClock;
-import com.sandbox.server.order.repository.OrderMongoRepository;
+import com.sandbox.server.order.infrastructure.persistence.OrderMongoRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
