@@ -1,0 +1,26 @@
+meta {
+  name: /job-applications/{id}/status
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{url}}/job-applications/:id/status
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id:
+}
+
+body:json {
+  {
+    "status": "REJECTED"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
