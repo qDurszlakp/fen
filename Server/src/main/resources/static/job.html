@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Applications</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --panel: #fff;
+            --border: #dcdfe4;
+            --text: #1f2328;
+            --muted: #656d76;
+            --post: #2da44e;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .wrap { max-width: 640px; margin: 0 auto; }
+
+        h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+
+        .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .9rem; }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .auth { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+
+        h2 {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--muted);
+            margin: 1.5rem 0 .5rem;
+        }
+
+        label {
+            display: block;
+            font-size: .8rem;
+            color: var(--muted);
+            margin: .8rem 0 .3rem;
+        }
+
+        label:first-of-type { margin-top: 0; }
+
+        input, select {
+            padding: .45rem .6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font: inherit;
+            width: 100%;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .8rem;
+        }
+
+        .checkbox-row input { width: auto; }
+        .checkbox-row label { margin: 0; }
+
+        .auth-state {
+            font-size: .8rem;
+            color: var(--muted);
+            margin-left: auto;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            word-break: break-all;
+        }
+
+        button {
+            padding: .5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #f6f8fa;
+            font: inherit;
+            font-size: .9rem;
+            cursor: pointer;
+        }
+
+        button:hover { background: #eaeef2; }
+
+        button.primary {
+            background: var(--post);
+            border-color: var(--post);
+            color: #fff;
+            margin-top: 1.2rem;
+        }
+
+        button.primary:hover { filter: brightness(1.05); }
+
+        .out {
+            background: #0d1117;
+            color: #e6edf3;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: .82rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 4rem;
+            max-height: 22rem;
+            overflow: auto;
+        }
+
+        .status { font-weight: 700; }
+        .status.ok { color: #3fb950; }
+        .status.bad { color: #ff7b72; }
+
+        .links { font-size: .85rem; }
+        .links a { color: #1f6feb; }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0d1117;
+                --panel: #161b22;
+                --border: #30363d;
+                --text: #e6edf3;
+                --muted: #8b949e;
+            }
+            button { background: #21262d; color: var(--text); }
+            button:hover { background: #30363d; }
+            input, select { background: #0d1117; color: var(--text); }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Job Applications</h1>
+    <p class="sub">job bounded context &mdash; POST /job-applications</p>
+
+    <div class="panel auth">
+        <input id="user" placeholder="username" autocomplete="username" value="admin">
+        <input id="pass" type="password" placeholder="password" autocomplete="current-password" value="admin">
+        <button onclick="login()">Login</button>
+        <span class="auth-state" id="authState">not logged in</span>
+    </div>
+
+    <form class="panel" id="jobForm" onsubmit="submitApplication(event)">
+        <label for="companyName">Company name</label>
+        <input id="companyName" name="companyName" required value="Acme Corp">
+
+        <label for="rateType">Rate</label>
+        <select id="rateType" name="rateType">
+            <option value="HOURLY">Hourly</option>
+            <option value="MONTHLY">Monthly</option>
+        </select>
+
+        <label for="rateAmount">Rate amount</label>
+        <input id="rateAmount" name="rateAmount" type="number" step="0.01" min="0" value="150">
+
+        <div class="checkbox-row">
+            <input id="paidLeave" type="checkbox" checked>
+            <label for="paidLeave">Paid leave</label>
+        </div>
+
+        <label for="vacationDays">Vacation days</label>
+        <input id="vacationDays" type="number" min="0" value="20">
+
+        <label for="cv">CV (PDF)</label>
+        <input id="cv" type="file" accept="application/pdf">
+
+        <button class="primary" type="submit">Submit application</button>
+    </form>
+
+    <h2>Response</h2>
+    <div class="out" id="out">Fill the form and submit.</div>
+
+    <h2>Other</h2>
+    <div class="panel links">
+        <a href="/index.html">API Console</a>
+    </div>
+</div>
+
+<script>
+    let accessToken = null;
+
+    const v = id => document.getElementById(id).value;
+    const out = document.getElementById('out');
+    const authState = document.getElementById('authState');
+
+    async function login() {
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: v('user'), password: v('pass')})
+        });
+        if (!res.ok) {
+            authState.textContent = 'login failed (' + res.status + ')';
+            return;
+        }
+        const tokenPair = await res.json();
+        accessToken = tokenPair.accessToken;
+        authState.textContent = 'logged in, access token expires in ' + tokenPair.expiresIn + 's';
+    }
+
+    function render(statusHtml, text) {
+        out.innerHTML = statusHtml + '\n\n';
+        out.appendChild(document.createTextNode(text));
+    }
+
+    async function submitApplication(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append('companyName', v('companyName'));
+        formData.append('rateType', v('rateType'));
+        if (v('rateAmount')) formData.append('rateAmount', v('rateAmount'));
+        formData.append('paidLeave', document.getElementById('paidLeave').checked);
+        formData.append('vacationDays', v('vacationDays') || '0');
+
+        const cvFile = document.getElementById('cv').files[0];
+        if (cvFile) formData.append('cv', cvFile);
+
+        const headers = {};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        out.textContent = 'POST /job-applications ...';
+
+        try {
+            // no Content-Type header on purpose - the browser sets multipart/form-data with the right boundary
+            const res = await fetch('/job-applications', {method: 'POST', headers, body: formData});
+
+            const text = await res.text();
+            let pretty = text;
+            try {
+                pretty = JSON.stringify(JSON.parse(text), null, 2);
+            } catch (ignored) {
+                pretty = text;
+            }
+
+            const cls = res.ok ? 'ok' : 'bad';
+            render('<span class="status ' + cls + '">' + res.status + ' ' + res.statusText + '</span>', pretty || '(empty response)');
+
+            // the form (including the selected CV) is intentionally left as-is after submit,
+            // so the same file is still there for the next application
+        } catch (e) {
+            render('<span class="status bad">NETWORK ERROR</span>', String(e));
+        }
+    }
+</script>
+</body>
+</html>

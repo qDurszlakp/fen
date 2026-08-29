@@ -6,6 +6,7 @@ import java.util.UUID;
 public record JobApplication(
         JobApplicationId id,
         CompanyName companyName,
+        String description,
         Rate rate,
         PaidLeave paidLeave,
         byte[] cv,
@@ -14,7 +15,11 @@ public record JobApplication(
         JobApplicationStatus status
 ) {
 
-    public static JobApplication submit(CompanyName companyName, Rate rate, PaidLeave paidLeave, byte[] cv, Instant now) {
-        return new JobApplication(new JobApplicationId(UUID.randomUUID()), companyName, rate, paidLeave, cv, now, now, JobApplicationStatus.SENT);
+    public static JobApplication submit(CompanyName companyName, String description, Rate rate, PaidLeave paidLeave, byte[] cv, Instant now) {
+        return new JobApplication(new JobApplicationId(UUID.randomUUID()), companyName, description, rate, paidLeave, cv, now, now, JobApplicationStatus.SENT);
+    }
+
+    public JobApplication withStatus(JobApplicationStatus newStatus, Instant now) {
+        return new JobApplication(id, companyName, description, rate, paidLeave, cv, sentAt, now, newStatus);
     }
 }

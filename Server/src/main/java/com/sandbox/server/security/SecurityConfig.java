@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/mcp/**",
                                 "/",
                                 "/index.html",
+                                "/job.html",
                                 "/css/**",
                                 "/js/**",
                                 "/webjars/**"

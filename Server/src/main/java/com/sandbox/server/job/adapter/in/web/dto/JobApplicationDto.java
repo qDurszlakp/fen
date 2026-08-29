@@ -7,6 +7,7 @@ import java.util.UUID;
 public record JobApplicationDto(
         UUID id,
         String companyName,
+        String description,
         String rateType,
         BigDecimal rateAmount,
         boolean paidLeave,

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 public record CreateJobApplicationRequest(
         String companyName,
+        String description,
         String rateType,
         BigDecimal rateAmount,
         boolean paidLeave,

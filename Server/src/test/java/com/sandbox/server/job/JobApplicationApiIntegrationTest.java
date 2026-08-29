@@ -3,6 +3,7 @@ package com.sandbox.server.job;
 import com.sandbox.BasicInfrastructure;
 import com.sandbox.FixedClock;
 import com.sandbox.MongoInfra;
+import com.jayway.jsonpath.JsonPath;
 import com.sandbox.server.job.adapter.out.persistence.JobApplicationMongoRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,12 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.context.ImportTestcontainers;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import static com.sandbox.AuthTestSupport.bearerAuth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,5 +95,49 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
                         .param("vacationDays", "20")
                         .with(bearerAuth(mockMvc)))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldUpdateStatus() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+
+        mockMvc.perform(patch("/job-applications/" + id + "/status")
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status": "REJECTED"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.status").value("REJECTED"));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturn404WhenUpdatingStatusOfUnknownApplication() {
+        mockMvc.perform(patch("/job-applications/6a75bc568cfb9c7c32c14746/status")
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status": "REJECTED"}
+                                """))
+                .andExpect(status().is4xxClientError());
+    }
+
+    private String createApplication() throws Exception {
+        MockMultipartFile cv = new MockMultipartFile("cv", "cv.pdf", "application/pdf", "%PDF-1.4 fake".getBytes());
+
+        ResultActions result = mockMvc.perform(multipart("/job-applications")
+                .file(cv)
+                .param("companyName", "Acme Corp")
+                .param("rateType", "HOURLY")
+                .param("rateAmount", "150")
+                .param("paidLeave", "true")
+                .param("vacationDays", "20")
+                .with(bearerAuth(mockMvc)));
+
+        return result.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
     }
 }

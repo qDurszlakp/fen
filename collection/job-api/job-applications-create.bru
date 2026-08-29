@@ -1,0 +1,25 @@
+meta {
+  name: /job-applications
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/job-applications
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  companyName: Acme Corp
+  rateType: HOURLY
+  rateAmount: 150
+  paidLeave: true
+  vacationDays: 20
+  cv: @file(/path/to/cv.pdf)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

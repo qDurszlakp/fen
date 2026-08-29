@@ -37,6 +37,7 @@ public class JobApplicationWebMapper {
         return new JobApplicationDto(
                 jobApplication.id().value(),
                 jobApplication.companyName().value(),
+                jobApplication.description(),
                 jobApplication.rate() instanceof HourlyRate ? "HOURLY" : "MONTHLY",
                 jobApplication.rate().amount(),
                 jobApplication.paidLeave().paid(),
