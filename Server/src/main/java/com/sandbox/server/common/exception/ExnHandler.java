@@ -104,9 +104,6 @@ public class ExnHandler {
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
-    /**
-     * Thrown when a {@code @Valid @RequestBody} fails validation.
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     private ResponseEntity<Map<String, Object>> validationError(MethodArgumentNotValidException e, HttpServletRequest request) {
 

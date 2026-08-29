@@ -3,9 +3,6 @@ package com.sandbox.server.playground;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * CompletableFuture: composing calls and handling failures.
- */
 public class CompletableFutures {
 
     record User(long id, String name) {

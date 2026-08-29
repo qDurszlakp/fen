@@ -3,6 +3,9 @@
 out/
 .idea_modules/
 
+### Docker volumes ###
+build/mongo-data/
+
 ### Intellij+iml Patch ###
 # Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-249601023
 

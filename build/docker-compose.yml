@@ -93,6 +93,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=dev_user
       - MONGO_INITDB_ROOT_PASSWORD=dev
+    volumes:
+      - ./mongo-data:/data/db
 
   zookeeper:
     image: 'docker.io/confluentinc/cp-zookeeper:7.0.1'

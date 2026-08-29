@@ -3,14 +3,6 @@ package com.sandbox.server.playground;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * ConcurrentHashMap vs Collections.synchronizedMap.
- * <p>
- * The point: synchronizedMap makes every single METHOD atomic, but not a
- * SEQUENCE of methods. Anything shaped like "read, decide, write" is a race
- * unless you lock the whole sequence yourself. CHM ships those sequences
- * as single atomic operations.
- */
 public class ConcurrentMaps {
 
     static final int THREADS = 8;

@@ -25,10 +25,6 @@ public class OrderWebMapper {
         );
     }
 
-    /**
-     * Builds the "changes" side of an update: only the fields a client can actually submit.
-     * id/total/createdAt are meaningless here - they are resolved by {@link Order#updatedFrom}.
-     */
     public Order toChanges(OrderDto dto) {
         return new Order(null, dto.version(), dto.customer(), dto.status(), dto.currency(), dto.channel(),
                 dto.note(), dto.address(), dto.items(), null, null);

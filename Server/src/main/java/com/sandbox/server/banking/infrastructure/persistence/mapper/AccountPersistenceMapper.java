@@ -6,11 +6,6 @@ import com.sandbox.server.banking.domain.model.AccountNumber;
 import com.sandbox.server.banking.infrastructure.persistence.entity.AccountJpaEntity;
 import org.springframework.stereotype.Component;
 
-/**
- * Translates between the {@link Account} aggregate and its JPA persistence model. Hand-written on
- * purpose: this boundary constructs value objects, which MapStruct cannot infer without extra
- * configuration - being explicit here is more valuable than saving a few lines of boilerplate.
- */
 @Component
 public class AccountPersistenceMapper {
 
