@@ -59,7 +59,7 @@ public class JobApplicationController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<JobApplicationDto> updateStatus(@PathVariable UUID id, @RequestBody UpdateJobApplicationStatusRequest request) {
 
-        JobApplication updated = updateJobApplicationUseCase.updateStatus(new JobApplicationId(id), request.status());
+        JobApplication updated = updateJobApplicationUseCase.updateStatus(new JobApplicationId(id), request.version(), request.status());
 
         return ResponseEntity.ok(mapper.toDto(updated));
     }
@@ -67,7 +67,7 @@ public class JobApplicationController {
     @PatchMapping("/{id}/description")
     public ResponseEntity<JobApplicationDto> updateDescription(@PathVariable UUID id, @RequestBody UpdateJobApplicationDescriptionRequest request) {
 
-        JobApplication updated = updateJobApplicationUseCase.updateDescription(new JobApplicationId(id), request.description());
+        JobApplication updated = updateJobApplicationUseCase.updateDescription(new JobApplicationId(id), request.version(), request.description());
 
         return ResponseEntity.ok(mapper.toDto(updated));
     }

@@ -345,12 +345,12 @@
         rows.innerHTML = filtered.map(a => `
             <tr>
                 <td>${escapeHtml(a.companyName)}</td>
-                <td><input data-id="${a.id}" value="${escapeAttr(a.description || '')}" onchange="updateDescription(this)"></td>
+                <td><input data-id="${a.id}" data-version="${a.version}" value="${escapeAttr(a.description || '')}" onchange="updateDescription(this)"></td>
                 <td>${a.rateType}${a.rateAmount != null ? ' ' + a.rateAmount : ''}</td>
                 <td>${a.paidLeave ? a.vacationDays + ' days' : 'no'}</td>
                 <td>${formatDate(a.sentAt)}</td>
                 <td>${formatDate(a.updatedAt)}</td>
-                <td><select data-id="${a.id}" onchange="updateStatus(this)">${statusOptions(a.status)}</select></td>
+                <td><select data-id="${a.id}" data-version="${a.version}" onchange="updateStatus(this)">${statusOptions(a.status)}</select></td>
                 <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
             </tr>
         `).join('');
@@ -363,11 +363,11 @@
     }
 
     async function updateStatus(select) {
-        await patchJobApplication(select.dataset.id, '/status', {status: select.value});
+        await patchJobApplication(select.dataset.id, '/status', {status: select.value, version: Number(select.dataset.version)});
     }
 
     async function updateDescription(input) {
-        await patchJobApplication(input.dataset.id, '/description', {description: input.value});
+        await patchJobApplication(input.dataset.id, '/description', {description: input.value, version: Number(input.dataset.version)});
     }
 
     async function patchJobApplication(id, path, body) {

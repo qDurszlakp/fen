@@ -102,16 +102,31 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
     void shouldUpdateStatus() {
         String created = createApplication();
         String id = JsonPath.read(created, "$.id");
+        int version = JsonPath.read(created, "$.version");
 
         mockMvc.perform(patch("/job-applications/" + id + "/status")
                         .with(bearerAuth(mockMvc))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"status": "REJECTED"}
-                                """))
+                                {"status": "REJECTED", "version": %d}
+                                """.formatted(version)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.status").value("REJECTED"));
+                .andExpect(jsonPath("$.status").value("REJECTED"))
+                .andExpect(jsonPath("$.version").value(version + 1));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldRejectStatusUpdateBuiltOnAStaleVersion() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+        int version = JsonPath.read(created, "$.version");
+
+        updateStatus(id, version, "WITHDRAWN").andExpect(status().isOk());
+
+        updateStatus(id, version, "REJECTED")
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -121,7 +136,7 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
                         .with(bearerAuth(mockMvc))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"status": "REJECTED"}
+                                {"status": "REJECTED", "version": 0}
                                 """))
                 .andExpect(status().is4xxClientError());
     }
@@ -131,16 +146,26 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
     void shouldUpdateDescription() {
         String created = createApplication();
         String id = JsonPath.read(created, "$.id");
+        int version = JsonPath.read(created, "$.version");
 
         mockMvc.perform(patch("/job-applications/" + id + "/description")
                         .with(bearerAuth(mockMvc))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"description": "called back, waiting for offer"}
-                                """))
+                                {"description": "called back, waiting for offer", "version": %d}
+                                """.formatted(version)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.description").value("called back, waiting for offer"));
+    }
+
+    private ResultActions updateStatus(String id, int version, String status) throws Exception {
+        return mockMvc.perform(patch("/job-applications/" + id + "/status")
+                .with(bearerAuth(mockMvc))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"status": "%s", "version": %d}
+                        """.formatted(status, version)));
     }
 
     private String createApplication() throws Exception {

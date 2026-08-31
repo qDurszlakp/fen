@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record JobApplicationDto(
         UUID id,
+        Long version,
         String companyName,
         String description,
         String rateType,

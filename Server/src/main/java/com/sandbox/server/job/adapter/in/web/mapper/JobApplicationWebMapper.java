@@ -36,6 +36,7 @@ public class JobApplicationWebMapper {
     public JobApplicationDto toDto(JobApplication jobApplication) {
         return new JobApplicationDto(
                 jobApplication.id().value(),
+                jobApplication.version(),
                 jobApplication.companyName().value(),
                 jobApplication.description(),
                 jobApplication.rate() instanceof HourlyRate ? "HOURLY" : "MONTHLY",
