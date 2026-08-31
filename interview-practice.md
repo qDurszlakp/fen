@@ -1,13 +1,12 @@
-# Interview Practice - 3 parallel tasks
-
-Hand each task to a separate agent (own terminal / git worktree). You orchestrate and review.
-Each: Java 21, JUnit 5, TDD (tests first). Target ~20-30 min each with AI.
-
----
-
 ## Task 1 - Roman Numerals ("Roman letters")
 
-Implement `com.sandbox.playground.roman.RomanNumerals`:
+**Problem:** Convert integers to Roman numerals and back. Romans wrote numbers with
+the letters I(1) V(5) X(10) L(50) C(100) D(500) M(1000), largest first, using the
+subtractive rule so a smaller letter before a larger one means "minus" (IV = 4, IX = 9,
+XL = 40). Supported range is 1..3999. Your job: implement both directions and reject
+invalid input.
+
+Class `com.sandbox.server.playground.RomanPrep`:
 
 ```java
 static String toRoman(int number)   // 1..3999
@@ -17,34 +16,40 @@ static int    fromRoman(String s)   // parse back
 Rules:
 - Subtractive notation: IV, IX, XL, XC, CD, CM.
 - `toRoman`: throw `IllegalArgumentException` for number < 1 or > 3999.
-- `fromRoman`: case-sensitive uppercase only; throw `IllegalArgumentException` for
-  malformed input (`"IIII"`, `"VV"`, `"IC"`, `"IL"`, `""`, `null`, lowercase, unknown chars).
+- `fromRoman`: uppercase only; throw `IllegalArgumentException` for malformed input
+  (`"IIII"`, `"VV"`, `"IC"`, `"IL"`, `""`, `null`, lowercase, unknown chars).
 - Round-trip invariant: `fromRoman(toRoman(n)) == n` for all valid n.
 
 Examples:
-| int  | roman        |
-|------|--------------|
-| 1    | I            |
-| 4    | IV           |
-| 9    | IX           |
-| 58   | LVIII        |
-| 1994 | MCMXCIV      |
-| 3888 | MMMDCCCLXXXVIII |
+| int  | roman           |
+|------|-----------------|
+| 1    | I               |
+| 4    | IV              |
+| 9    | IX              |
+| 58   | LVIII           |
+| 1994 | MCMXCIV         |
+| 3888 | MMMDCCCLXXXVIII  |
 
 ---
 
 ## Task 2 - In-Memory File System ("IMFS")
 
-Implement `com.sandbox.playground.imfs.InMemoryFileSystem` with absolute POSIX-style paths,
-root `/`:
+**Problem:** Build a tiny file system that lives only in memory - no disk. It has a single
+root `/`, directories that contain other directories and files, and files that hold a
+string of content. Paths are absolute and `/`-separated (`/a/b/f.txt`). You expose a
+handful of operations (make directory, add/read file, list, remove) and raise errors for
+nonsense operations (writing into a directory that doesn't exist, reading a directory as
+if it were a file, etc.).
+
+Class `com.sandbox.server.playground.ImfsPrep` - absolute POSIX-style paths, root `/`:
 
 ```java
-void         mkdir(String path)                 // parent must already exist
-void         addFile(String path, String content) // parent dir must exist; overwrites
+void         mkdir(String path)                    // parent must already exist
+void         addFile(String path, String content)  // parent dir must exist; overwrites
 String       readFile(String path)
-List<String> ls(String path)                    // dir -> child names sorted asc
-                                                // file -> single-element list with file name
-void         rm(String path)                    // removes file or dir (recursively)
+List<String> ls(String path)                       // dir -> child names sorted asc
+                                                   // file -> single-element list with file name
+void         rm(String path)                       // removes file or dir (recursively)
 ```
 
 Errors (`IllegalArgumentException` or a custom exception - be consistent):
@@ -70,7 +75,14 @@ ls("/a")                 -> []
 
 ## Task 3 - Expression Language ("Language")
 
-Implement `com.sandbox.playground.lang.Interpreter`:
+**Problem:** Write a mini interpreter for a one-line-per-statement language. A program is
+a string of statements separated by `;`. A statement is either an assignment
+(`let x = <expr>`) or a bare arithmetic expression. Expressions use `+ - * /`, unary
+minus and parentheses with normal math precedence. `run` evaluates the whole program and
+returns the value of the last statement. Undefined variables, division by zero and
+malformed syntax are errors.
+
+Class `com.sandbox.server.playground.LangPrep`:
 
 ```java
 double run(String program)   // returns value of the last statement/expression
@@ -89,11 +101,11 @@ Errors (custom `EvalException`):
 
 Examples:
 ```
-run("2 + 3 * 4")            -> 14.0
-run("(2 + 3) * 4")          -> 20.0
-run("-5 + 2")               -> -3.0
-run("let x = 5; x * x")     -> 25.0
-run("let a = 2; let b = a + 3; a * b") -> 10.0
+run("2 + 3 * 4")                        -> 14.0
+run("(2 + 3) * 4")                      -> 20.0
+run("-5 + 2")                           -> -3.0
+run("let x = 5; x * x")                 -> 25.0
+run("let a = 2; let b = a + 3; a * b")  -> 10.0
 ```
 
 Stretch (only if time): `%` operator, comparison returning 1.0/0.0, `print` statement.
