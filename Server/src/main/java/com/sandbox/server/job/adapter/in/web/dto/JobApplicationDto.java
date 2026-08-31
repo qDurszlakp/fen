@@ -14,6 +14,7 @@ public record JobApplicationDto(
         int vacationDays,
         Instant sentAt,
         Instant updatedAt,
-        String status
+        String status,
+        boolean hasCv
 ) {
 }

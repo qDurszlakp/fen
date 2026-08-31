@@ -44,7 +44,8 @@ public class JobApplicationWebMapper {
                 jobApplication.paidLeave().days(),
                 jobApplication.sentAt(),
                 jobApplication.updatedAt(),
-                jobApplication.status().name()
+                jobApplication.status().name(),
+                jobApplication.cv() != null
         );
     }
 }

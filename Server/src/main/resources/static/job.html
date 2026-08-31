@@ -24,7 +24,34 @@
             color: var(--text);
         }
 
-        .wrap { max-width: 640px; margin: 0 auto; }
+        .wrap { max-width: 1600px; margin: 0 auto; }
+
+        .list-controls { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+        .list-controls input { flex: 1; min-width: 200px; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .85rem; }
+
+        th, td {
+            text-align: left;
+            padding: .5rem .6rem;
+            border-bottom: 1px solid var(--border);
+            overflow-wrap: break-word;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        tr:hover td { background: rgba(127, 127, 127, .06); }
+
+        .muted { color: var(--muted); }
+
+        .count { font-size: .8rem; color: var(--muted); }
 
         h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
 
@@ -142,7 +169,6 @@
 <body>
 <div class="wrap">
     <h1>Job Applications</h1>
-    <p class="sub">job bounded context &mdash; POST /job-applications</p>
 
     <div class="panel auth">
         <input id="user" placeholder="username" autocomplete="username" value="admin">
@@ -165,7 +191,7 @@
         <input id="rateAmount" name="rateAmount" type="number" step="0.01" min="0" value="150">
 
         <div class="checkbox-row">
-            <input id="paidLeave" type="checkbox" checked>
+            <input id="paidLeave" type="checkbox">
             <label for="paidLeave">Paid leave</label>
         </div>
 
@@ -180,6 +206,34 @@
 
     <h2>Response</h2>
     <div class="out" id="out">Fill the form and submit.</div>
+
+    <h2>Applications</h2>
+    <div class="panel">
+        <div class="list-controls">
+            <input id="filter" placeholder="Filter by company name..." oninput="renderApplications()">
+            <button onclick="loadApplications()">Load / refresh</button>
+            <span class="count" id="count"></span>
+        </div>
+    </div>
+    <div class="panel table-scroll">
+        <table>
+            <thead>
+            <tr>
+                <th>Company</th>
+                <th>Description</th>
+                <th>Rate</th>
+                <th>Paid leave</th>
+                <th>Sent</th>
+                <th>Updated</th>
+                <th>Status</th>
+                <th>CV</th>
+            </tr>
+            </thead>
+            <tbody id="rows">
+            <tr><td colspan="8" class="muted">Log in, then "Load / refresh".</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <h2>Other</h2>
     <div class="panel links">
@@ -207,6 +261,7 @@
         const tokenPair = await res.json();
         accessToken = tokenPair.accessToken;
         authState.textContent = 'logged in, access token expires in ' + tokenPair.expiresIn + 's';
+        loadApplications();
     }
 
     function render(statusHtml, text) {
@@ -249,9 +304,91 @@
 
             // the form (including the selected CV) is intentionally left as-is after submit,
             // so the same file is still there for the next application
+            loadApplications();
         } catch (e) {
             render('<span class="status bad">NETWORK ERROR</span>', String(e));
         }
+    }
+
+    let applications = [];
+    const rows = document.getElementById('rows');
+    const count = document.getElementById('count');
+
+    async function loadApplications() {
+        const headers = {};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        const res = await fetch('/job-applications?size=500', {headers});
+        if (!res.ok) {
+            rows.innerHTML = '<tr><td colspan="8" class="muted">Failed to load (' + res.status + ')</td></tr>';
+            return;
+        }
+
+        const page = await res.json();
+        applications = page.content || [];
+        renderApplications();
+    }
+
+    function renderApplications() {
+        const needle = v('filter').trim().toLowerCase();
+        const filtered = needle
+            ? applications.filter(a => a.companyName.toLowerCase().includes(needle))
+            : applications;
+
+        count.textContent = filtered.length + ' / ' + applications.length;
+
+        if (filtered.length === 0) {
+            rows.innerHTML = '<tr><td colspan="8" class="muted">No matching applications.</td></tr>';
+            return;
+        }
+
+        rows.innerHTML = filtered.map(a => `
+            <tr>
+                <td>${escapeHtml(a.companyName)}</td>
+                <td class="muted">${escapeHtml(a.description || '')}</td>
+                <td>${a.rateType}${a.rateAmount != null ? ' ' + a.rateAmount : ''}</td>
+                <td>${a.paidLeave ? a.vacationDays + ' days' : 'no'}</td>
+                <td>${formatDate(a.sentAt)}</td>
+                <td>${formatDate(a.updatedAt)}</td>
+                <td>${a.status}</td>
+                <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
+            </tr>
+        `).join('');
+    }
+
+    function formatDate(iso) {
+        return iso ? iso.replace('T', ' ').slice(0, 16) : '';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeJs(text) {
+        return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    async function downloadCv(id, companyName) {
+        const headers = {};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        const res = await fetch('/job-applications/' + id + '/cv', {headers});
+        if (!res.ok) {
+            alert('Download failed (' + res.status + ')');
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = companyName.replace(/[^a-zA-Z0-9-]+/g, '_') + '-cv.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     }
 </script>
 </body>

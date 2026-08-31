@@ -4,14 +4,22 @@ import com.sandbox.server.job.adapter.in.web.dto.CreateJobApplicationRequest;
 import com.sandbox.server.job.adapter.in.web.dto.JobApplicationDto;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationStatusRequest;
 import com.sandbox.server.job.adapter.in.web.mapper.JobApplicationWebMapper;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SaveJobApplicationUseCase;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationStatusUseCase;
 import com.sandbox.server.job.domain.JobApplication;
 import com.sandbox.server.job.domain.JobApplicationId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -28,13 +37,15 @@ import java.util.UUID;
 @RequestMapping("/job-applications")
 public class JobApplicationController {
 
-    private final SaveJobApplicationUseCase saveJobApplicationUseCase;
+    private final SubmitJobApplicationUseCase submitJobApplicationUseCase;
+    private final UpdateJobApplicationStatusUseCase updateJobApplicationStatusUseCase;
+    private final FindJobApplicationsUseCase findJobApplicationsUseCase;
     private final JobApplicationWebMapper mapper;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JobApplicationDto> create(@Valid @ModelAttribute CreateJobApplicationRequest request) throws IOException {
 
-        JobApplication saved = saveJobApplicationUseCase.submit(
+        JobApplication saved = submitJobApplicationUseCase.submit(
                 mapper.toCompanyName(request),
                 request.description(),
                 mapper.toRate(request),
@@ -47,8 +58,32 @@ public class JobApplicationController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<JobApplicationDto> updateStatus(@PathVariable UUID id, @RequestBody UpdateJobApplicationStatusRequest request) {
 
-        JobApplication updated = saveJobApplicationUseCase.updateStatus(new JobApplicationId(id), request.status());
+        JobApplication updated = updateJobApplicationStatusUseCase.updateStatus(new JobApplicationId(id), request.status());
 
         return ResponseEntity.ok(mapper.toDto(updated));
+    }
+
+    @GetMapping
+    public ResponseEntity<PagedModel<JobApplicationDto>> list(
+            @PageableDefault(size = 500, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(new PagedModel<>(findJobApplicationsUseCase.findAll(pageable).map(mapper::toDto)));
+    }
+
+    @GetMapping("/{id}/cv")
+    public ResponseEntity<byte[]> downloadCv(@PathVariable UUID id) {
+        JobApplication jobApplication = findJobApplicationsUseCase.findById(new JobApplicationId(id))
+                .orElseThrow(() -> new NoSuchElementException("no job application " + id));
+
+        if (jobApplication.cv() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String filename = jobApplication.companyName().value().replaceAll("[^a-zA-Z0-9-]+", "_") + "-cv.pdf";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(jobApplication.cv());
     }
 }
