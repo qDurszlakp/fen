@@ -126,6 +126,23 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
                 .andExpect(status().is4xxClientError());
     }
 
+    @Test
+    @SneakyThrows
+    void shouldUpdateDescription() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+
+        mockMvc.perform(patch("/job-applications/" + id + "/description")
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description": "called back, waiting for offer"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.description").value("called back, waiting for offer"));
+    }
+
     private String createApplication() throws Exception {
         MockMultipartFile cv = new MockMultipartFile("cv", "cv.pdf", "application/pdf", "%PDF-1.4 fake".getBytes());
 

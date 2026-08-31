@@ -2,7 +2,7 @@ package com.sandbox.server.job.application.service;
 
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationStatusUseCase;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.out.SaveJobApplicationPort;
 import com.sandbox.server.job.domain.CompanyName;
 import com.sandbox.server.job.domain.JobApplication;
@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class JobApplicationService implements SubmitJobApplicationUseCase, UpdateJobApplicationStatusUseCase, FindJobApplicationsUseCase {
+public class JobApplicationService implements SubmitJobApplicationUseCase, UpdateJobApplicationUseCase, FindJobApplicationsUseCase {
 
     private final SaveJobApplicationPort saveJobApplicationPort;
     private final Clock clock;
@@ -38,6 +38,14 @@ public class JobApplicationService implements SubmitJobApplicationUseCase, Updat
                 .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));
 
         return saveJobApplicationPort.save(existing.withStatus(status, Instant.now(clock)));
+    }
+
+    @Override
+    public JobApplication updateDescription(JobApplicationId id, String description) {
+        JobApplication existing = saveJobApplicationPort.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));
+
+        return saveJobApplicationPort.save(existing.withDescription(description, Instant.now(clock)));
     }
 
     @Override

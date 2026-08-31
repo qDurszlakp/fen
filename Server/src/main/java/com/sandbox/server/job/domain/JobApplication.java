@@ -22,4 +22,8 @@ public record JobApplication(
     public JobApplication withStatus(JobApplicationStatus newStatus, Instant now) {
         return new JobApplication(id, companyName, description, rate, paidLeave, cv, sentAt, now, newStatus);
     }
+
+    public JobApplication withDescription(String newDescription, Instant now) {
+        return new JobApplication(id, companyName, newDescription, rate, paidLeave, cv, sentAt, now, status);
+    }
 }

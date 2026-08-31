@@ -2,11 +2,12 @@ package com.sandbox.server.job.adapter.in.web;
 
 import com.sandbox.server.job.adapter.in.web.dto.CreateJobApplicationRequest;
 import com.sandbox.server.job.adapter.in.web.dto.JobApplicationDto;
+import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationDescriptionRequest;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationStatusRequest;
 import com.sandbox.server.job.adapter.in.web.mapper.JobApplicationWebMapper;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationStatusUseCase;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
 import com.sandbox.server.job.domain.JobApplication;
 import com.sandbox.server.job.domain.JobApplicationId;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ import java.util.UUID;
 public class JobApplicationController {
 
     private final SubmitJobApplicationUseCase submitJobApplicationUseCase;
-    private final UpdateJobApplicationStatusUseCase updateJobApplicationStatusUseCase;
+    private final UpdateJobApplicationUseCase updateJobApplicationUseCase;
     private final FindJobApplicationsUseCase findJobApplicationsUseCase;
     private final JobApplicationWebMapper mapper;
 
@@ -58,7 +59,15 @@ public class JobApplicationController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<JobApplicationDto> updateStatus(@PathVariable UUID id, @RequestBody UpdateJobApplicationStatusRequest request) {
 
-        JobApplication updated = updateJobApplicationStatusUseCase.updateStatus(new JobApplicationId(id), request.status());
+        JobApplication updated = updateJobApplicationUseCase.updateStatus(new JobApplicationId(id), request.status());
+
+        return ResponseEntity.ok(mapper.toDto(updated));
+    }
+
+    @PatchMapping("/{id}/description")
+    public ResponseEntity<JobApplicationDto> updateDescription(@PathVariable UUID id, @RequestBody UpdateJobApplicationDescriptionRequest request) {
+
+        JobApplication updated = updateJobApplicationUseCase.updateDescription(new JobApplicationId(id), request.description());
 
         return ResponseEntity.ok(mapper.toDto(updated));
     }

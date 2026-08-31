@@ -345,15 +345,48 @@
         rows.innerHTML = filtered.map(a => `
             <tr>
                 <td>${escapeHtml(a.companyName)}</td>
-                <td class="muted">${escapeHtml(a.description || '')}</td>
+                <td><input data-id="${a.id}" value="${escapeAttr(a.description || '')}" onchange="updateDescription(this)"></td>
                 <td>${a.rateType}${a.rateAmount != null ? ' ' + a.rateAmount : ''}</td>
                 <td>${a.paidLeave ? a.vacationDays + ' days' : 'no'}</td>
                 <td>${formatDate(a.sentAt)}</td>
                 <td>${formatDate(a.updatedAt)}</td>
-                <td>${a.status}</td>
+                <td><select data-id="${a.id}" onchange="updateStatus(this)">${statusOptions(a.status)}</select></td>
                 <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
             </tr>
         `).join('');
+    }
+
+    const STATUSES = ['SENT', 'WITHDRAWN', 'REJECTED', 'ACCEPTED'];
+
+    function statusOptions(current) {
+        return STATUSES.map(s => `<option value="${s}"${s === current ? ' selected' : ''}>${s}</option>`).join('');
+    }
+
+    async function updateStatus(select) {
+        await patchJobApplication(select.dataset.id, '/status', {status: select.value});
+    }
+
+    async function updateDescription(input) {
+        await patchJobApplication(input.dataset.id, '/description', {description: input.value});
+    }
+
+    async function patchJobApplication(id, path, body) {
+        const headers = {'Content-Type': 'application/json'};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        const res = await fetch('/job-applications/' + id + path, {
+            method: 'PATCH', headers, body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+            alert('Update failed (' + res.status + ')');
+            return;
+        }
+
+        const updated = await res.json();
+        const idx = applications.findIndex(a => a.id === id);
+        if (idx !== -1) applications[idx] = updated;
+        renderApplications();
     }
 
     function formatDate(iso) {
@@ -368,6 +401,14 @@
 
     function escapeJs(text) {
         return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function escapeAttr(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
     async function downloadCv(id, companyName) {
