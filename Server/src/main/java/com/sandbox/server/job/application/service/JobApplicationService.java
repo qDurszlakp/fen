@@ -1,5 +1,6 @@
 package com.sandbox.server.job.application.service;
 
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.DeleteJobApplicationUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
@@ -22,7 +23,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class JobApplicationService implements SubmitJobApplicationUseCase, UpdateJobApplicationUseCase, FindJobApplicationsUseCase {
+public class JobApplicationService implements SubmitJobApplicationUseCase, UpdateJobApplicationUseCase, FindJobApplicationsUseCase, DeleteJobApplicationUseCase {
 
     private final SaveJobApplicationPort saveJobApplicationPort;
     private final Clock clock;
@@ -46,6 +47,14 @@ public class JobApplicationService implements SubmitJobApplicationUseCase, Updat
                 .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));
 
         return saveJobApplicationPort.save(existing.withDescription(description, version, Instant.now(clock)));
+    }
+
+    @Override
+    public void delete(JobApplicationId id) {
+        saveJobApplicationPort.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));
+
+        saveJobApplicationPort.deleteById(id);
     }
 
     @Override

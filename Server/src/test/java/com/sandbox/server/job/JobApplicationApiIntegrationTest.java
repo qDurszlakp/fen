@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static com.sandbox.AuthTestSupport.bearerAuth;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -157,6 +158,27 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.description").value("called back, waiting for offer"));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldDeleteJobApplication() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+
+        mockMvc.perform(delete("/job-applications/" + id)
+                        .with(bearerAuth(mockMvc)))
+                .andExpect(status().isNoContent());
+
+        assertThat(jobApplicationMongoRepository.count()).isZero();
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturn404WhenDeletingUnknownApplication() {
+        mockMvc.perform(delete("/job-applications/" + java.util.UUID.randomUUID())
+                        .with(bearerAuth(mockMvc)))
+                .andExpect(status().isNotFound());
     }
 
     private ResultActions updateStatus(String id, int version, String status) throws Exception {

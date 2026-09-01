@@ -227,10 +227,11 @@
                 <th>Updated</th>
                 <th>Status</th>
                 <th>CV</th>
+                <th></th>
             </tr>
             </thead>
             <tbody id="rows">
-            <tr><td colspan="8" class="muted">Log in, then "Load / refresh".</td></tr>
+            <tr><td colspan="9" class="muted">Log in, then "Load / refresh".</td></tr>
             </tbody>
         </table>
     </div>
@@ -320,7 +321,7 @@
 
         const res = await fetch('/job-applications?size=500', {headers});
         if (!res.ok) {
-            rows.innerHTML = '<tr><td colspan="8" class="muted">Failed to load (' + res.status + ')</td></tr>';
+            rows.innerHTML = '<tr><td colspan="9" class="muted">Failed to load (' + res.status + ')</td></tr>';
             return;
         }
 
@@ -338,7 +339,7 @@
         count.textContent = filtered.length + ' / ' + applications.length;
 
         if (filtered.length === 0) {
-            rows.innerHTML = '<tr><td colspan="8" class="muted">No matching applications.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="9" class="muted">No matching applications.</td></tr>';
             return;
         }
 
@@ -352,6 +353,7 @@
                 <td>${formatDate(a.updatedAt)}</td>
                 <td><select data-id="${a.id}" data-version="${a.version}" onchange="updateStatus(this)">${statusOptions(a.status)}</select></td>
                 <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
+                <td><button title="Delete" onclick="deleteApplication('${a.id}', '${escapeJs(a.companyName)}')">✕</button></td>
             </tr>
         `).join('');
     }
@@ -386,6 +388,22 @@
         const updated = await res.json();
         const idx = applications.findIndex(a => a.id === id);
         if (idx !== -1) applications[idx] = updated;
+        renderApplications();
+    }
+
+    async function deleteApplication(id, companyName) {
+        if (!confirm('Delete application for ' + companyName + '?')) return;
+
+        const headers = {};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        const res = await fetch('/job-applications/' + id, {method: 'DELETE', headers});
+        if (!res.ok) {
+            alert('Delete failed (' + res.status + ')');
+            return;
+        }
+
+        applications = applications.filter(a => a.id !== id);
         renderApplications();
     }
 

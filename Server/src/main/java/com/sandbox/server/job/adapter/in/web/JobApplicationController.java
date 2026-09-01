@@ -5,6 +5,7 @@ import com.sandbox.server.job.adapter.in.web.dto.JobApplicationDto;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationDescriptionRequest;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationStatusRequest;
 import com.sandbox.server.job.adapter.in.web.mapper.JobApplicationWebMapper;
+import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.DeleteJobApplicationUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +43,7 @@ public class JobApplicationController {
     private final SubmitJobApplicationUseCase submitJobApplicationUseCase;
     private final UpdateJobApplicationUseCase updateJobApplicationUseCase;
     private final FindJobApplicationsUseCase findJobApplicationsUseCase;
+    private final DeleteJobApplicationUseCase deleteJobApplicationUseCase;
     private final JobApplicationWebMapper mapper;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -70,6 +73,14 @@ public class JobApplicationController {
         JobApplication updated = updateJobApplicationUseCase.updateDescription(new JobApplicationId(id), request.version(), request.description());
 
         return ResponseEntity.ok(mapper.toDto(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+
+        deleteJobApplicationUseCase.delete(new JobApplicationId(id));
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
