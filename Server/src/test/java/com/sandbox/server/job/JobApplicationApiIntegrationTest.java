@@ -87,7 +87,7 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
 
     @Test
     @SneakyThrows
-    void shouldAllowRequestWithoutCv() {
+    void shouldRejectRequestWithoutCv() {
         mockMvc.perform(multipart("/job-applications")
                         .param("companyName", "Acme Corp")
                         .param("rateType", "HOURLY")
@@ -95,7 +95,8 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
                         .param("paidLeave", "true")
                         .param("vacationDays", "20")
                         .with(bearerAuth(mockMvc)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.cv").isNotEmpty());
     }
 
     @Test

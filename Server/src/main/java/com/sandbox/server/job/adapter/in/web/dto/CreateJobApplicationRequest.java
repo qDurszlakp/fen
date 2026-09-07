@@ -12,6 +12,6 @@ public record CreateJobApplicationRequest(
         BigDecimal rateAmount,
         boolean paidLeave,
         int vacationDays,
-        MultipartFile cv
+        @NotNull MultipartFile cv
 ) {
 }
