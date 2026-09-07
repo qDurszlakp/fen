@@ -50,6 +50,14 @@ public class JobApplicationService implements SubmitJobApplicationUseCase, Updat
     }
 
     @Override
+    public JobApplication update(JobApplicationId id, Long version, String description, JobApplicationStatus status) {
+        JobApplication existing = saveJobApplicationPort.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));
+
+        return saveJobApplicationPort.save(existing.withUpdate(description, status, version, Instant.now(clock)));
+    }
+
+    @Override
     public void delete(JobApplicationId id) {
         saveJobApplicationPort.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("no job application " + id.value()));

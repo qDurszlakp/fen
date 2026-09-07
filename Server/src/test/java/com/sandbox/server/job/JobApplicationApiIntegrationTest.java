@@ -162,6 +162,62 @@ public class JobApplicationApiIntegrationTest extends BasicInfrastructure {
 
     @Test
     @SneakyThrows
+    void shouldUpdateJobApplicationDescriptionAndStatus() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+        int version = JsonPath.read(created, "$.version");
+
+        mockMvc.perform(patch("/job-applications/" + id)
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "description": "updated description",
+                                  "status": "ACCEPTED",
+                                  "version": %d
+                                }
+                                """.formatted(version)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.description").value("updated description"))
+                .andExpect(jsonPath("$.status").value("ACCEPTED"))
+                .andExpect(jsonPath("$.version").value(version + 1));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldRejectCombinedUpdateBuiltOnAStaleVersion() {
+        String created = createApplication();
+        String id = JsonPath.read(created, "$.id");
+        int version = JsonPath.read(created, "$.version");
+
+        mockMvc.perform(patch("/job-applications/" + id)
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "description": "first update",
+                                  "status": "WITHDRAWN",
+                                  "version": %d
+                                }
+                                """.formatted(version)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(patch("/job-applications/" + id)
+                        .with(bearerAuth(mockMvc))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "description": "second update stale",
+                                  "status": "REJECTED",
+                                  "version": %d
+                                }
+                                """.formatted(version)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @SneakyThrows
     void shouldDeleteJobApplication() {
         String created = createApplication();
         String id = JsonPath.read(created, "$.id");

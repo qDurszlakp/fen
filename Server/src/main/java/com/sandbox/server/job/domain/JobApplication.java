@@ -27,4 +27,8 @@ public record JobApplication(
     public JobApplication withDescription(String newDescription, Long expectedVersion, Instant now) {
         return new JobApplication(id, expectedVersion, companyName, newDescription, rate, paidLeave, cv, sentAt, now, status);
     }
+
+    public JobApplication withUpdate(String newDescription, JobApplicationStatus newStatus, Long expectedVersion, Instant now) {
+        return new JobApplication(id, expectedVersion, companyName, newDescription, rate, paidLeave, cv, sentAt, now, newStatus);
+    }
 }

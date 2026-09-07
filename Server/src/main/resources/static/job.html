@@ -31,13 +31,39 @@
 
         .table-scroll { overflow-x: auto; }
 
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .85rem; }
+        table { width: 100%; border-collapse: collapse; font-size: .85rem; }
 
         th, td {
             text-align: left;
             padding: .5rem .6rem;
             border-bottom: 1px solid var(--border);
-            overflow-wrap: break-word;
+            white-space: nowrap;
+        }
+
+        th.col-desc, td.col-desc {
+            width: 100%;
+            white-space: normal;
+        }
+
+        td.col-desc input {
+            width: 100%;
+            min-width: 160px;
+        }
+
+        table select {
+            width: auto;
+        }
+
+        table button {
+            padding: .3rem .55rem;
+            font-size: .8rem;
+            white-space: nowrap;
+        }
+
+        button.delete-btn {
+            padding: .3rem .5rem;
+            font-size: .8rem;
+            line-height: 1;
         }
 
         th {
@@ -149,6 +175,22 @@
         .status.ok { color: #3fb950; }
         .status.bad { color: #ff7b72; }
 
+        tr.modified td { background: rgba(220, 160, 0, 0.12); }
+        .row-actions { display: flex; gap: .35rem; align-items: center; }
+        .edit-actions { display: inline-flex; gap: .35rem; }
+        button.save-btn {
+            background: var(--post);
+            border-color: var(--post);
+            color: #fff;
+            padding: .3rem .55rem;
+            font-size: .8rem;
+        }
+        button.save-btn:hover { filter: brightness(1.05); }
+        button.cancel-btn {
+            padding: .3rem .55rem;
+            font-size: .8rem;
+        }
+
         .links { font-size: .85rem; }
         .links a { color: #1f6feb; }
 
@@ -220,7 +262,7 @@
             <thead>
             <tr>
                 <th>Company</th>
-                <th>Description</th>
+                <th class="col-desc">Description</th>
                 <th>Rate</th>
                 <th>Paid leave</th>
                 <th>Sent</th>
@@ -312,6 +354,7 @@
     }
 
     let applications = [];
+    const pendingEdits = new Map();
     const rows = document.getElementById('rows');
     const count = document.getElementById('count');
 
@@ -327,6 +370,7 @@
 
         const page = await res.json();
         applications = page.content || [];
+        pendingEdits.clear();
         renderApplications();
     }
 
@@ -343,19 +387,34 @@
             return;
         }
 
-        rows.innerHTML = filtered.map(a => `
-            <tr>
+        rows.innerHTML = filtered.map(a => {
+            const pending = pendingEdits.get(a.id);
+            const isDirty = !!pending;
+            const currentDesc = isDirty ? pending.description : (a.description || '');
+            const currentStatus = isDirty ? pending.status : a.status;
+
+            return `
+            <tr id="row-${a.id}" class="${isDirty ? 'modified' : ''}">
                 <td>${escapeHtml(a.companyName)}</td>
-                <td><input data-id="${a.id}" data-version="${a.version}" value="${escapeAttr(a.description || '')}" onchange="updateDescription(this)"></td>
+                <td class="col-desc"><input id="desc-${a.id}" data-id="${a.id}" value="${escapeAttr(currentDesc)}" oninput="onRowChange('${a.id}')"></td>
                 <td>${a.rateType}${a.rateAmount != null ? ' ' + a.rateAmount : ''}</td>
                 <td>${a.paidLeave ? a.vacationDays + ' days' : 'no'}</td>
                 <td>${formatDate(a.sentAt)}</td>
                 <td>${formatDate(a.updatedAt)}</td>
-                <td><select data-id="${a.id}" data-version="${a.version}" onchange="updateStatus(this)">${statusOptions(a.status)}</select></td>
+                <td><select id="status-${a.id}" data-id="${a.id}" onchange="onRowChange('${a.id}')">${statusOptions(currentStatus)}</select></td>
                 <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
-                <td><button title="Delete" onclick="deleteApplication('${a.id}', '${escapeJs(a.companyName)}')">✕</button></td>
+                <td>
+                    <div class="row-actions">
+                        <span class="edit-actions" id="edit-actions-${a.id}" style="${isDirty ? 'display: inline-flex;' : 'display: none;'}">
+                            <button class="save-btn" onclick="saveApplication('${a.id}')" title="Save changes">Save</button>
+                            <button class="cancel-btn" onclick="cancelApplicationEdit('${a.id}')" title="Cancel changes">Cancel</button>
+                        </span>
+                        <button class="delete-btn" title="Delete" onclick="deleteApplication('${a.id}', '${escapeJs(a.companyName)}')">✕</button>
+                    </div>
+                </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     }
 
     const STATUSES = ['SENT', 'WITHDRAWN', 'REJECTED', 'ACCEPTED'];
@@ -364,31 +423,101 @@
         return STATUSES.map(s => `<option value="${s}"${s === current ? ' selected' : ''}>${s}</option>`).join('');
     }
 
-    async function updateStatus(select) {
-        await patchJobApplication(select.dataset.id, '/status', {status: select.value, version: Number(select.dataset.version)});
+    function onRowChange(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+
+        const descInput = document.getElementById('desc-' + id);
+        const statusSelect = document.getElementById('status-' + id);
+        const row = document.getElementById('row-' + id);
+        const actions = document.getElementById('edit-actions-' + id);
+
+        const currentDesc = descInput ? descInput.value : (app.description || '');
+        const currentStatus = statusSelect ? statusSelect.value : app.status;
+
+        const isDirty = (currentDesc !== (app.description || '')) || (currentStatus !== app.status);
+
+        if (isDirty) {
+            pendingEdits.set(id, { description: currentDesc, status: currentStatus });
+        } else {
+            pendingEdits.delete(id);
+        }
+
+        if (row) row.classList.toggle('modified', isDirty);
+        if (actions) actions.style.display = isDirty ? 'inline-flex' : 'none';
     }
 
-    async function updateDescription(input) {
-        await patchJobApplication(input.dataset.id, '/description', {description: input.value, version: Number(input.dataset.version)});
+    function cancelApplicationEdit(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+
+        pendingEdits.delete(id);
+
+        const descInput = document.getElementById('desc-' + id);
+        const statusSelect = document.getElementById('status-' + id);
+
+        if (descInput) descInput.value = app.description || '';
+        if (statusSelect) statusSelect.value = app.status;
+
+        const row = document.getElementById('row-' + id);
+        const actions = document.getElementById('edit-actions-' + id);
+
+        if (row) row.classList.remove('modified');
+        if (actions) actions.style.display = 'none';
+    }
+
+    async function saveApplication(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+
+        const descInput = document.getElementById('desc-' + id);
+        const statusSelect = document.getElementById('status-' + id);
+
+        const description = descInput ? descInput.value : (app.description || '');
+        const status = statusSelect ? statusSelect.value : app.status;
+
+        await patchJobApplication(id, '', {
+            description,
+            status,
+            version: app.version
+        });
     }
 
     async function patchJobApplication(id, path, body) {
         const headers = {'Content-Type': 'application/json'};
         if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
 
-        const res = await fetch('/job-applications/' + id + path, {
-            method: 'PATCH', headers, body: JSON.stringify(body)
-        });
+        out.textContent = 'PATCH /job-applications/' + id + path + ' ...';
 
-        if (!res.ok) {
-            alert('Update failed (' + res.status + ')');
-            return;
+        try {
+            const res = await fetch('/job-applications/' + id + path, {
+                method: 'PATCH', headers, body: JSON.stringify(body)
+            });
+
+            const text = await res.text();
+            let pretty = text;
+            try {
+                pretty = JSON.stringify(JSON.parse(text), null, 2);
+            } catch (ignored) {
+                pretty = text;
+            }
+
+            const cls = res.ok ? 'ok' : 'bad';
+            render('<span class="status ' + cls + '">' + res.status + ' ' + res.statusText + '</span>', pretty || '(empty response)');
+
+            if (!res.ok) {
+                alert('Update failed (' + res.status + ')');
+                return;
+            }
+
+            const updated = JSON.parse(text);
+            const idx = applications.findIndex(a => a.id === id);
+            if (idx !== -1) applications[idx] = updated;
+            pendingEdits.delete(id);
+            renderApplications();
+        } catch (e) {
+            render('<span class="status bad">NETWORK ERROR</span>', String(e));
         }
-
-        const updated = await res.json();
-        const idx = applications.findIndex(a => a.id === id);
-        if (idx !== -1) applications[idx] = updated;
-        renderApplications();
     }
 
     async function deleteApplication(id, companyName) {
@@ -403,6 +532,7 @@
             return;
         }
 
+        pendingEdits.delete(id);
         applications = applications.filter(a => a.id !== id);
         renderApplications();
     }

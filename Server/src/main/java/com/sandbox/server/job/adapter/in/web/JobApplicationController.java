@@ -3,6 +3,7 @@ package com.sandbox.server.job.adapter.in.web;
 import com.sandbox.server.job.adapter.in.web.dto.CreateJobApplicationRequest;
 import com.sandbox.server.job.adapter.in.web.dto.JobApplicationDto;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationDescriptionRequest;
+import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationRequest;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationStatusRequest;
 import com.sandbox.server.job.adapter.in.web.mapper.JobApplicationWebMapper;
 import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.DeleteJobApplicationUseCase;
@@ -71,6 +72,14 @@ public class JobApplicationController {
     public ResponseEntity<JobApplicationDto> updateDescription(@PathVariable UUID id, @RequestBody UpdateJobApplicationDescriptionRequest request) {
 
         JobApplication updated = updateJobApplicationUseCase.updateDescription(new JobApplicationId(id), request.version(), request.description());
+
+        return ResponseEntity.ok(mapper.toDto(updated));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<JobApplicationDto> update(@PathVariable UUID id, @RequestBody UpdateJobApplicationRequest request) {
+
+        JobApplication updated = updateJobApplicationUseCase.update(new JobApplicationId(id), request.version(), request.description(), request.status());
 
         return ResponseEntity.ok(mapper.toDto(updated));
     }
