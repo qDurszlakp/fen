@@ -176,7 +176,7 @@
         .status.bad { color: #ff7b72; }
 
         tr.modified td { background: rgba(220, 160, 0, 0.12); }
-        .row-actions { display: flex; gap: .35rem; align-items: center; }
+        .row-actions { display: inline-flex; gap: .35rem; align-items: center; white-space: nowrap; }
         .edit-actions { display: inline-flex; gap: .35rem; }
         button.save-btn {
             background: var(--post);
@@ -189,6 +189,30 @@
         button.cancel-btn {
             padding: .3rem .55rem;
             font-size: .8rem;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: color .15s ease;
+        }
+        th.sortable:hover {
+            color: var(--text);
+        }
+        th.sorted {
+            color: var(--text);
+            font-weight: 700;
+        }
+        .sort-icon {
+            font-size: .65rem;
+            margin-left: .2rem;
+            display: inline-block;
+        }
+        .cv-actions {
+            display: inline-flex;
+            gap: .25rem;
+            align-items: center;
+            white-space: nowrap;
         }
 
         .links { font-size: .85rem; }
@@ -261,13 +285,13 @@
         <table>
             <thead>
             <tr>
-                <th>Company</th>
+                <th class="sortable" id="th-companyName" onclick="setSort('companyName')" title="Sort by Company">Company<span class="sort-icon"></span></th>
                 <th class="col-desc">Description</th>
-                <th>Rate</th>
-                <th>Paid leave</th>
-                <th>Sent</th>
-                <th>Updated</th>
-                <th>Status</th>
+                <th class="sortable" id="th-rateAmount" onclick="setSort('rateAmount')" title="Sort by Rate">Rate<span class="sort-icon"></span></th>
+                <th class="sortable" id="th-paidLeave" onclick="setSort('paidLeave')" title="Sort by Paid leave">Paid leave<span class="sort-icon"></span></th>
+                <th class="sortable" id="th-sentAt" onclick="setSort('sentAt')" title="Sort by Sent date">Sent<span class="sort-icon"></span></th>
+                <th class="sortable" id="th-updatedAt" onclick="setSort('updatedAt')" title="Sort by Updated date">Updated<span class="sort-icon"></span></th>
+                <th class="sortable" id="th-status" onclick="setSort('status')" title="Sort by Status">Status<span class="sort-icon"></span></th>
                 <th>CV</th>
                 <th></th>
             </tr>
@@ -357,6 +381,8 @@
     const pendingEdits = new Map();
     const rows = document.getElementById('rows');
     const count = document.getElementById('count');
+    let sortCol = null;
+    let sortDir = null;
 
     async function loadApplications() {
         const headers = {};
@@ -371,23 +397,78 @@
         const page = await res.json();
         applications = page.content || [];
         pendingEdits.clear();
+        updateSortHeaders();
         renderApplications();
+    }
+
+    function setSort(col) {
+        if (sortCol === col) {
+            if (sortDir === 'asc') {
+                sortDir = 'desc';
+            } else {
+                sortCol = null;
+                sortDir = null;
+            }
+        } else {
+            sortCol = col;
+            sortDir = 'asc';
+        }
+        updateSortHeaders();
+        renderApplications();
+    }
+
+    function updateSortHeaders() {
+        ['companyName', 'rateAmount', 'paidLeave', 'sentAt', 'updatedAt', 'status'].forEach(col => {
+            const th = document.getElementById('th-' + col);
+            if (!th) return;
+            const icon = th.querySelector('.sort-icon');
+            if (sortCol === col) {
+                icon.textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
+                th.classList.add('sorted');
+            } else {
+                icon.textContent = '';
+                th.classList.remove('sorted');
+            }
+        });
     }
 
     function renderApplications() {
         const needle = v('filter').trim().toLowerCase();
-        const filtered = needle
-            ? applications.filter(a => a.companyName.toLowerCase().includes(needle))
-            : applications;
+        let list = needle
+            ? applications.filter(a => (a.companyName && a.companyName.toLowerCase().includes(needle)) || (a.description && a.description.toLowerCase().includes(needle)))
+            : applications.slice();
 
-        count.textContent = filtered.length + ' / ' + applications.length;
+        if (sortCol) {
+            list.sort((a, b) => {
+                let vA = a[sortCol];
+                let vB = b[sortCol];
 
-        if (filtered.length === 0) {
+                if (sortCol === 'rateAmount') {
+                    vA = vA != null ? Number(vA) : -1;
+                    vB = vB != null ? Number(vB) : -1;
+                } else if (sortCol === 'paidLeave') {
+                    vA = a.paidLeave ? (a.vacationDays || 0) : -1;
+                    vB = b.paidLeave ? (b.vacationDays || 0) : -1;
+                } else if (typeof vA === 'string' || typeof vB === 'string') {
+                    vA = (vA || '').toLowerCase();
+                    vB = (vB || '').toLowerCase();
+                    return sortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+                }
+
+                if (vA < vB) return sortDir === 'asc' ? -1 : 1;
+                if (vA > vB) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        count.textContent = list.length + ' / ' + applications.length;
+
+        if (list.length === 0) {
             rows.innerHTML = '<tr><td colspan="9" class="muted">No matching applications.</td></tr>';
             return;
         }
 
-        rows.innerHTML = filtered.map(a => {
+        rows.innerHTML = list.map(a => {
             const pending = pendingEdits.get(a.id);
             const isDirty = !!pending;
             const currentDesc = isDirty ? pending.description : (a.description || '');
@@ -402,7 +483,14 @@
                 <td>${formatDate(a.sentAt)}</td>
                 <td>${formatDate(a.updatedAt)}</td>
                 <td><select id="status-${a.id}" data-id="${a.id}" onchange="onRowChange('${a.id}')">${statusOptions(currentStatus)}</select></td>
-                <td>${a.hasCv ? '<button onclick="downloadCv(\'' + a.id + '\', \'' + escapeJs(a.companyName) + '\')">Download</button>' : '<span class="muted">none</span>'}</td>
+                <td>
+                    ${a.hasCv ? `
+                        <div class="cv-actions">
+                            <button onclick="previewCv('${a.id}')" title="Preview PDF in new tab">View</button>
+                            <button onclick="downloadCv('${a.id}', '${escapeJs(a.companyName)}')" title="Download PDF">⬇</button>
+                        </div>
+                    ` : '<span class="muted">none</span>'}
+                </td>
                 <td>
                     <div class="row-actions">
                         <span class="edit-actions" id="edit-actions-${a.id}" style="${isDirty ? 'display: inline-flex;' : 'display: none;'}">
@@ -557,6 +645,25 @@
             .replace(/"/g, '&quot;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
+    }
+
+    async function previewCv(id) {
+        const headers = {};
+        if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+        try {
+            const res = await fetch('/job-applications/' + id + '/cv', {headers});
+            if (!res.ok) {
+                alert('Failed to preview CV (' + res.status + ')');
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (e) {
+            alert('Failed to preview CV: ' + e);
+        }
     }
 
     async function downloadCv(id, companyName) {
