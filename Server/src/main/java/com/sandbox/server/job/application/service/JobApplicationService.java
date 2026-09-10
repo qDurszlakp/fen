@@ -1,10 +1,10 @@
 package com.sandbox.server.job.application.service;
 
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.DeleteJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.out.SaveJobApplicationPort;
+import com.sandbox.server.job.application.port.in.DeleteJobApplicationUseCase;
+import com.sandbox.server.job.application.port.in.FindJobApplicationsUseCase;
+import com.sandbox.server.job.application.port.in.SubmitJobApplicationUseCase;
+import com.sandbox.server.job.application.port.in.UpdateJobApplicationUseCase;
+import com.sandbox.server.job.application.port.out.SaveJobApplicationPort;
 import com.sandbox.server.job.domain.CompanyName;
 import com.sandbox.server.job.domain.JobApplication;
 import com.sandbox.server.job.domain.JobApplicationId;

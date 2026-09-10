@@ -6,10 +6,10 @@ import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationDescription
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationRequest;
 import com.sandbox.server.job.adapter.in.web.dto.UpdateJobApplicationStatusRequest;
 import com.sandbox.server.job.adapter.in.web.mapper.JobApplicationWebMapper;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.DeleteJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.FindJobApplicationsUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.SubmitJobApplicationUseCase;
-import com.sandbox.server.job.adapter.out.persistence.mapper.port.in.UpdateJobApplicationUseCase;
+import com.sandbox.server.job.application.port.in.DeleteJobApplicationUseCase;
+import com.sandbox.server.job.application.port.in.FindJobApplicationsUseCase;
+import com.sandbox.server.job.application.port.in.SubmitJobApplicationUseCase;
+import com.sandbox.server.job.application.port.in.UpdateJobApplicationUseCase;
 import com.sandbox.server.job.domain.JobApplication;
 import com.sandbox.server.job.domain.JobApplicationId;
 import jakarta.validation.Valid;

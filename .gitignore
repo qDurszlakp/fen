@@ -1,6 +1,6 @@
 .idea/*
 *.iws
-out/
+/out/
 .idea_modules/
 
 ### Docker volumes ###

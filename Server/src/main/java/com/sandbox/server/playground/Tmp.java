@@ -1,5 +1,6 @@
 package com.sandbox.server.playground;
 
+import javax.swing.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -104,12 +105,6 @@ public class Tmp {
 
         List<Integer> numbers = List.of(12, 5, 8, 19, 21, 8, 4, 15, 30, 2, 19, 7);
 
-        System.out.println("Dane załadowane poprawnie. Poniżej znajdują się zadania do wykonania:");
-
-        // =====================================================================
-        // CZĘŚĆ 1: PODSTAWY (filter, map, sorted, findFirst, matchers)
-        // =====================================================================
-
         /*
          * Zadanie 1:
          * Znajdź nazwy wszystkich produktów z kategorii "Elektronika", których cena wynosi co najmniej 350 zł.
@@ -117,9 +112,14 @@ public class Tmp {
          *
          * Podpowiedź: filter, map, toList
          */
-        // List<String> task1 = ...
-        // System.out.println("Zadanie 1: " + task1);
 
+        List<String> list = products.stream()
+                .filter(product -> "Elektronika".equalsIgnoreCase(product.category))
+                .filter(product -> product.price >= 350.0)
+                .map(Product::name)
+                .toList();
+
+        System.out.println(list);
 
         /*
          * Zadanie 2:
@@ -128,9 +128,13 @@ public class Tmp {
          *
          * Podpowiedź: sorted, Comparator.comparing(...).reversed().thenComparing(...)
          */
-        // List<Product> task2 = ...
-        // System.out.println("Zadanie 2: " + task2);
 
+        List<String> list1 = products.stream()
+                .sorted(Comparator.comparing(Product::price).reversed().thenComparing(Product::name))
+                .map(Product::id)
+                .toList();
+
+        System.out.println(list1);
 
         /*
          * Zadanie 3:
@@ -140,12 +144,17 @@ public class Tmp {
          *
          * Podpowiedź: anyMatch, allMatch, noneMatch
          */
-        // boolean hasExpensiveCancelled = ...
-        // boolean allAbove10 = ...
-        // boolean noneAbove10k = ...
-        // System.out.println("Zadanie 3a: " + hasExpensiveCancelled);
-        // System.out.println("Zadanie 3b: " + allAbove10);
-        // System.out.println("Zadanie 3c: " + noneAbove10k);
+
+        List<Order> list2 = orders.stream()
+                .filter(order -> OrderStatus.CANCELLED.equals(order.status))
+                .filter(order -> order.getTotalAmount() > 2000.0)
+                .toList();
+
+        boolean b = orders.stream()
+                .allMatch(order -> order.getTotalAmount() > 10.0);
+
+        boolean a = orders.stream()
+                .noneMatch(order -> order.getTotalAmount() > 10000.0);
 
 
         /*
@@ -155,8 +164,17 @@ public class Tmp {
          *
          * Podpowiedź: filter, findFirst, map, orElse
          */
-        // String task4 = ...
-        // System.out.println("Zadanie 4: " + task4);
+
+        String name = products.stream()
+                .filter(product -> "Książki".equalsIgnoreCase(product.category))
+                .filter((product -> product.price > 80.0))
+                .sorted(Comparator.comparing(Product::price))
+                .map(Product::name)
+                .findFirst()
+                .orElse("Brak");
+
+        System.out.println(name);
+
 
 
         /*
@@ -165,10 +183,15 @@ public class Tmp {
          *
          * Podpowiedź: map, distinct, sorted, limit
          */
-        // List<Double> task5 = ...
-        // System.out.println("Zadanie 5: " + task5);
 
+        List<Double> list3 = products.stream()
+                .distinct()
+                .sorted(Comparator.comparing(Product::price))
+                .limit(3)
+                .map(Product::price)
+                .toList();
 
+        System.out.println(list3);
 
         // =====================================================================
         // CZĘŚĆ 2: SPŁASZCZANIE STRUKTUR I STRUMIENIE LICZBOWE (flatMap, IntStream)
@@ -181,8 +204,13 @@ public class Tmp {
          *
          * Podpowiedź: filter (status), flatMap (zamówienie -> items), map (item -> product), distinct
          */
-        // List<Product> task6 = ...
-        // System.out.println("Zadanie 6: " + task6);
+
+        List<Product> list4 = orders.stream()
+                .filter(order -> List.of(OrderStatus.PAID, OrderStatus.SHIPPED).contains(order.status))
+                .flatMap(order -> order.items().stream())
+                .map(OrderItem::product)
+                .distinct()
+                .toList();
 
 
         /*
@@ -193,8 +221,10 @@ public class Tmp {
          *
          * Podpowiedź: flatMap z Arrays.stream(sentence.split("\\s+")), map(String::toLowerCase), filter, distinct, sorted
          */
-        // List<String> task7 = ...
-        // System.out.println("Zadanie 7: " + task7);
+
+        
+
+
 
 
         /*
