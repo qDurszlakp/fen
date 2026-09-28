@@ -8,6 +8,9 @@ public class Algs {
         System.out.println(sockMerchant(List.of(1, 2, 1, 2, 1, 3, 2)));
     }
 
+
+
+
     public static int sockMerchant(List<Integer> ar) {
 
         int pairs = 0;
