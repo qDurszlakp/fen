@@ -58,7 +58,9 @@ public class SecurityConfig {
                                 "/job.html",
                                 "/css/**",
                                 "/js/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/books",
+                                "/error"
                         ).permitAll()
                         .anyRequest()
                         .authenticated()

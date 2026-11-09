@@ -58,7 +58,9 @@ data:
 audit:
   patterns: '/rest/**,/accounts/**,/cards/**,/countries/**,/orders/**,/audits/**,/auth/**'
 
-
 logging:
   level:
     org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+
+books:
+  basicUrl: "http://host.containers.internal:8081/"
